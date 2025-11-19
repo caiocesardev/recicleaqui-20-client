@@ -165,7 +165,7 @@ const LoginScreen = ({ navigation }: Props) => {
               />
               <S.CheckboxLabel>Manter-me conectado</S.CheckboxLabel>
             </S.CheckboxContainer>
-            <S.ForgotPasswordButton onPress={() => alert('Navegar para Esqueci a Senha!')}>
+            <S.ForgotPasswordButton onPress={() => navigation.navigate('ForgotPassword')}>
               <S.ForgotPasswordText>Esqueci a senha</S.ForgotPasswordText>
             </S.ForgotPasswordButton>
           </S.OptionsContainer>

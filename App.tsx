@@ -8,13 +8,11 @@ import { NavigationContainer } from '@react-navigation/native';
 // Importações dos Navegadores
 import AuthNavigator from './src/navigation/AuthNavigator';
 import MainNavigator from './src/navigation/MainNavigator';
-
-// Importação do Contexto (O "Cérebro" que substitui o setInterval)
 import { AuthProvider, useAuth } from './src/context/AuthContext';
 
 // --- Componente Interno que decide a navegação ---
 function RootNavigation() {
-  const { isLoggedIn, isLoading } = useAuth(); // <--- O Contexto nos diz se está logado
+  const { isLoggedIn, isLoading } = useAuth(); 
 
   if (isLoading) {
     return (
