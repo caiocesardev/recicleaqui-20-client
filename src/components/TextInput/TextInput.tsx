@@ -11,6 +11,11 @@ type TextInputProps = RNTextInputProps & {
   onRightPress?: () => void;
 };
 
+// --- Interface para o Estilo ---
+interface InputWrapperProps {
+  hasError: boolean;
+}
+
 // --- Componentes Estilizados ---
 
 const Container = styled(View)`
@@ -18,27 +23,31 @@ const Container = styled(View)`
   margin-bottom: 5px;
 `;
 
-const InputWrapper = styled.View`
+const InputWrapper = styled(View)<InputWrapperProps>`
   width: 100%;
   position: relative;
   flex-direction: row;
   align-items: center;
   background-color: #fff;
   border-radius: 25px;
-  border: 1px solid #e0e0e0;
+  
+  /* Agora o TypeScript sabe exatamente o que é 'props' */
+  border-width: 1px;
+  border-color: ${(props: InputWrapperProps) => (props.hasError ? '#ff4444' : '#e0e0e0')};
+  
   height: 55px;
-  padding-left: 20px; /* Padding para o texto */
+  padding-left: 20px;
 `;
 
 const StyledInput = styled.TextInput`
   flex: 1;
   font-size: 16px;
   color: #333;
-  padding-right: 48px; /* espaço para o ícone posicionado */
+  padding-right: 48px; 
 `;
 
 const ErrorText = styled.Text`
-  color: #cc0000;
+  color: #ff4444;
   font-size: 12px;
   margin-top: 4px;
   margin-left: 20px;
@@ -60,7 +69,7 @@ const IconContainer = styled.View`
 const TextInput = ({ error, children, rightIcon, onRightPress, ...props }: TextInputProps) => {
   return (
     <Container>
-      <InputWrapper>
+      <InputWrapper hasError={!!error}>
         <StyledInput
           placeholderTextColor="#A9A9A9"
           {...props}

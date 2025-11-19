@@ -1,94 +1,106 @@
 // Arquivo: src/screens/Auth/LoginScreen/LoginScreen.tsx
-// (Este arquivo foi limpo de todos os caracteres de espaço em branco ilegais)
 
 import React, { useState } from 'react';
-import { StatusBar, TouchableOpacity, View, Alert } from 'react-native';
-import { Path } from 'react-native-svg';
-
-// Importação correta do @expo/vector-icons
-import { MaterialCommunityIcons as Icon } from '@expo/vector-icons';
+import { StatusBar, TouchableOpacity, View, Keyboard } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage'; 
+
+// Importação correta dos ícones (SDK 54)
+import { MaterialCommunityIcons as Icon } from '@expo/vector-icons'; 
+
+// Importação do Hook de Autenticação
+import { useAuth } from '../../../context/AuthContext';
 
 import { Button, TextInput } from '../../../components'; 
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
-type Props = NativeStackScreenProps<any, 'Login'>;
+import { AuthStackParamList } from '../../../navigation/AuthNavigator';
+
+type Props = NativeStackScreenProps<AuthStackParamList, 'Login'>;
 
 import * as S from './LoginScreen.styles';
+import { Path } from 'react-native-svg';
 
 const LoginScreen = ({ navigation }: Props) => {
+  // Pegamos a função signIn do nosso contexto
+  const { signIn } = useAuth();
+
   const [isPasswordVisible, setPasswordVisible] = useState(false);
   const [rememberMe, setRememberMe] = useState(false); 
+  
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  
   const [isLoading, setIsLoading] = useState(false);
   const [emailError, setEmailError] = useState('');
   const [passwordError, setPasswordError] = useState('');
   
   const validateForm = () => {
     let isValid = true;
+    setEmailError('');
+    setPasswordError('');
     
     if (!email.includes('@') || email.length < 5) {
-      setEmailError('Email inválido');
+      setEmailError('Digite um e-mail válido');
       isValid = false;
-    } else {
-      setEmailError('');
     }
-    
     if (password.length < 6) {
-      setPasswordError('Mínimo 6 caracteres');
+      setPasswordError('A senha deve ter no mínimo 6 caracteres');
       isValid = false;
-    } else {
-      setPasswordError('');
     }
-    
     return isValid;
   };
   
   const handleLogin = async () => {
+    Keyboard.dismiss();
+
     if (!validateForm()) return;
     
     setIsLoading(true);
+
     try {
+      await new Promise(resolve => setTimeout(resolve, 1500));
+
       const BASE_URL = 'https://berta-journalish-outlandishly.ngrok-free.dev';
+      
       const res = await fetch(`${BASE_URL}/api/v1/auth/login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, password }),
       });
 
+      const result = await res.json();
+
       if (!res.ok) {
-        let data = null;
-        try { data = await res.json(); } catch (e) { /* ignore */ }
-        const message = data?.message || data?.error || `Erro ${res.status}`;
-        Alert.alert('Erro de Login', message);
-        console.error('Login falhou:', res.status, data);
+        setIsLoading(false);
+        const errorMessage = result?.message || result?.error || 'Erro desconhecido';
+
+        if (res.status === 404) {
+          setEmailError('E-mail não cadastrado.');
+        } else if (res.status === 401) {
+          setPasswordError('Senha incorreta.');
+        } else {
+          setPasswordError(errorMessage);
+        }
         return;
       }
 
-      const result = await res.json();
       const token = result?.token;
       const user = result?.user;
       
       if (token) {
-        // armazenar token no AsyncStorage
-        await AsyncStorage.setItem('authToken', token);
-        // armazenar userId (se disponível) para uso posterior
         if (user && user.id) {
           await AsyncStorage.setItem('userId', String(user.id));
         }
-        console.log('Login OK, token salvo:', token, 'userId:', user?.id);
+        await signIn(token);
         
-        // redirecionar para Home
-        Alert.alert('Sucesso', 'Login realizado com sucesso!');
-        navigation.navigate('Home');
       } else {
-        Alert.alert('Erro', 'Token não retornado pelo servidor.');
+        setIsLoading(false);
+        setPasswordError('Erro: Token inválido recebido.');
       }
+
     } catch (err) {
       console.error(err);
-      Alert.alert('Erro', 'Falha ao fazer login. Verifique conexão com a API.');
-    } finally {
       setIsLoading(false);
+      setPasswordError('Sem conexão com o servidor.'); 
     }
   };
 
@@ -126,21 +138,23 @@ const LoginScreen = ({ navigation }: Props) => {
             keyboardType="email-address"
             autoCapitalize="none"
             value={email}
-            onChangeText={setEmail}
+            onChangeText={(t) => { setEmail(t); setEmailError(''); }}
             error={emailError}
           >
-            <Icon name="email-outline" size={22} color="#888" />
+            <S.InputIcon name="email-outline" size={22} color={emailError ? '#ff4444' : '#888'} />
           </TextInput>
 
           <TextInput
             placeholder="Senha"
             secureTextEntry={!isPasswordVisible}
             value={password}
-            onChangeText={setPassword}
+            onChangeText={(t) => { setPassword(t); setPasswordError(''); }}
             error={passwordError}
-            rightIcon={<Icon name={isPasswordVisible ? 'eye-off' : 'eye'} size={24} color="#888" />}
-            onRightPress={() => setPasswordVisible(prev => !prev)}
-          />
+          >
+            <TouchableOpacity onPress={() => setPasswordVisible(prev => !prev)}>
+              <S.InputIcon name={isPasswordVisible ? 'eye-off' : 'eye'} size={24} color={passwordError ? '#ff4444' : '#888'} />
+            </TouchableOpacity>
+          </TextInput>
           
           <S.OptionsContainer>
             <S.CheckboxContainer onPress={() => setRememberMe(prev => !prev)}>
@@ -156,7 +170,7 @@ const LoginScreen = ({ navigation }: Props) => {
             </S.ForgotPasswordButton>
           </S.OptionsContainer>
 
-          <Button title="Entrar" onPress={handleLogin} isLoading={isLoading} />
+          <Button title="ENTRAR" onPress={handleLogin} isLoading={isLoading} />
         </View>
         
         <S.RegisterContainer>

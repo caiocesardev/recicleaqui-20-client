@@ -3,6 +3,7 @@
 import styled from 'styled-components/native';
 import { Dimensions } from 'react-native';
 import Svg from 'react-native-svg';
+import { MaterialCommunityIcons as Icon } from '@expo/vector-icons';
 
 export const { width } = Dimensions.get('window');
 
@@ -118,4 +119,8 @@ export const RegisterLink = styled.Text`
   color: ${PRIMARY_COLOR};
   font-family: 'Montserrat-Bold';
   margin-left: 5px;
+`;
+
+export const InputIcon = styled(Icon)`
+  margin-left: 10px;
 `;

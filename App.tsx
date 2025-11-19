@@ -1,52 +1,22 @@
-// Arquivo: App.tsx
+// Arquivo: src/App.tsx
 
-import AuthNavigator from './src/navigation/AuthNavigator';
-import MainNavigator from './src/navigation/MainNavigator';
-
-import * as React from 'react';
+import React from 'react';
 import { StatusBar, View, ActivityIndicator } from 'react-native';
 import { useFonts } from 'expo-font';
 import { NavigationContainer } from '@react-navigation/native';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 
-// --- 2. Componente Principal ---
-function App(): React.ReactElement {
-  
-  // --- 3. O ESTADO DE LOGIN ---
-  // Verificar token no AsyncStorage para determinar se está autenticado
-  const [isLoggedIn, setIsLoggedIn] = React.useState(false);
-  const [isChecking, setIsChecking] = React.useState(true);
+// Importações dos Navegadores
+import AuthNavigator from './src/navigation/AuthNavigator';
+import MainNavigator from './src/navigation/MainNavigator';
 
-  // Carregamento das fontes (seu código original)
-  const [fontsLoaded] = useFonts({
-    'Montserrat-Regular': require('./assets/fonts/Montserrat-Regular.ttf'),
-    'Montserrat-Bold': require('./assets/fonts/Montserrat-Bold.ttf'),
-  });
+// Importação do Contexto (O "Cérebro" que substitui o setInterval)
+import { AuthProvider, useAuth } from './src/context/AuthContext';
 
-  // Verificar token ao montar o componente
-  React.useEffect(() => {
-    const checkToken = async () => {
-      try {
-        const token = await AsyncStorage.getItem('authToken');
-        setIsLoggedIn(!!token); // true se token existir, false caso contrário
-        console.log('Token check:', token ? 'Token encontrado' : 'Sem token');
-      } catch (err) {
-        console.error('Erro ao verificar token:', err);
-        setIsLoggedIn(false);
-      } finally {
-        setIsChecking(false);
-      }
-    };
-    checkToken();
+// --- Componente Interno que decide a navegação ---
+function RootNavigation() {
+  const { isLoggedIn, isLoading } = useAuth(); // <--- O Contexto nos diz se está logado
 
-    // Listener para detectar mudanças no AsyncStorage (logout)
-    // Usando um intervalo para verificar a cada 500ms
-    const intervalId = setInterval(checkToken, 500);
-    return () => clearInterval(intervalId);
-  }, []);
-
-  // Se as fontes não carregaram OU ainda está verificando o token, mostre o loading
-  if (!fontsLoaded || isChecking) {
+  if (isLoading) {
     return (
       <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
         <ActivityIndicator size="large" color="#348e57" />
@@ -54,17 +24,32 @@ function App(): React.ReactElement {
     );
   }
 
-  // As fontes carregaram e o token foi verificado. Renderize o app.
   return (
-    <>
-      <StatusBar barStyle="dark-content" />
-      <NavigationContainer>
-        {isLoggedIn ? <MainNavigator /> : <AuthNavigator />}
-        {/* --- 4. A LÓGICA DO "PORTEIRO" --- */}
-        {/* Se tem token → MainNavigator (Home), caso contrário → AuthNavigator (Login/Register) */}
-      </NavigationContainer>
-    </>
+    <NavigationContainer>
+      {isLoggedIn ? <MainNavigator /> : <AuthNavigator />}
+    </NavigationContainer>
   );
 }
 
-export default App;
+// --- Componente Principal ---
+export default function App() {
+  const [fontsLoaded] = useFonts({
+    'Montserrat-Regular': require('./assets/fonts/Montserrat-Regular.ttf'),
+    'Montserrat-Bold': require('./assets/fonts/Montserrat-Bold.ttf'),
+  });
+
+  if (!fontsLoaded) {
+    return (
+      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+        <ActivityIndicator size="large" color="#348e57" />
+      </View>
+    );
+  }
+
+  return (
+    <AuthProvider>
+      <StatusBar barStyle="dark-content" />
+      <RootNavigation />
+    </AuthProvider>
+  );
+}

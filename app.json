@@ -5,10 +5,10 @@
     "version": "1.0.0",
     "scheme": "recicleaqui20client",
     "orientation": "portrait",
-    "icon": "./assets/icon.png",
+    "icon": "./assets/images/logo-recicle-aqui.png",
     "userInterfaceStyle": "light",
     "splash": {
-      "image": "./assets/splash-icon.png",
+      "image": "../../../../assets/images/logo-recicle-aqui.png",
       "resizeMode": "contain",
       "backgroundColor": "#ffffff"
     },

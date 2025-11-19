@@ -1,9 +1,6 @@
 // Arquivo: src/navigation/MainNavigator.tsx
 import React from 'react';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
-
-// --- CORREÇÃO APLICADA AQUI ---
-// Importando HomeScreen diretamente da pasta App
 import HomeScreen from '../screens/App/HomeScreen';
 
 // Tipos para este stack
