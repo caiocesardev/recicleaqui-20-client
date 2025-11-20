@@ -35,9 +35,8 @@ const HomeScreen = () => {
         await signOut();
         return;
       }
-
-      const BASE_URL = 'https://berta-journalish-outlandishly.ngrok-free.dev';
-      const response = await fetch(`${BASE_URL}/api/v1/clients/${userId}`, {
+      const apiUrl = process.env.EXPO_PUBLIC_API_URL || '';
+      const response = await fetch(`${apiUrl}/clients/${userId}`, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',

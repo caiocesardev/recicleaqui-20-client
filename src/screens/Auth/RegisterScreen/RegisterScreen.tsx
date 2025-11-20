@@ -229,20 +229,19 @@ const RegisterScreen = ({ navigation }: Props) => {
 
       let endpoint = '';
       if (clientType === 'individual') {
-        endpoint = '/api/v1/clients/individual';
+        endpoint = '/clients/individual';
         payload.firstName = firstName;
         payload.lastName = lastName;
         payload.cpf = onlyDigits(cpf);
       } else {
-        endpoint = '/api/v1/clients/company';
+        endpoint = '/clients/company';
         payload.companyName = companyName;
         payload.tradeName = tradeName;
         payload.cnpj = onlyDigits(cnpj);
       }
-
-      // URL pública do ngrok (encaminha para http://localhost:3000)
-      const BASE_URL = 'https://berta-journalish-outlandishly.ngrok-free.dev';
-      const res = await fetch(`${BASE_URL}${endpoint}`, {
+      
+      const apiUrl = process.env.EXPO_PUBLIC_API_URL || '';
+      const res = await fetch(`${apiUrl}${endpoint}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload),

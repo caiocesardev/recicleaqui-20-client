@@ -58,10 +58,8 @@ const LoginScreen = ({ navigation }: Props) => {
 
     try {
       await new Promise(resolve => setTimeout(resolve, 1500));
-
-      const BASE_URL = 'https://berta-journalish-outlandishly.ngrok-free.dev';
-      
-      const res = await fetch(`${BASE_URL}/api/v1/auth/login`, {
+      const apiUrl = process.env.EXPO_PUBLIC_API_URL || '';
+      const res = await fetch(`${apiUrl}/auth/login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, password }),
