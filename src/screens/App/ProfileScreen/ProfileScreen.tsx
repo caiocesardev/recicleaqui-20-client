@@ -12,7 +12,6 @@ import * as S from './ProfileScreen.styles';
 
 const ProfileScreen = () => {
   const navigation = useNavigation();
-  const { signOut } = useAuth();
 
   // Estados do formulário
   const [name, setName] = useState('');
@@ -66,7 +65,6 @@ const ProfileScreen = () => {
   const handleLogout = () => {
     Alert.alert("Sair", "Tem certeza que deseja sair da conta?", [
       { text: "Cancelar", style: "cancel" },
-      { text: "Sair", onPress: signOut, style: "destructive" }
     ]);
   };
 
@@ -126,11 +124,6 @@ const ProfileScreen = () => {
             <Button title="SALVAR ALTERAÇÕES" onPress={handleSave} isLoading={isLoading} />
           </View>
         </S.FormCard>
-
-        <S.LogoutButton onPress={handleLogout}>
-          <MaterialCommunityIcons name="logout" size={20} color="#E74C3C" />
-          <S.LogoutText>Sair da Conta</S.LogoutText>
-        </S.LogoutButton>
 
         <View style={{ height: 40 }} />
       </S.ContentContainer>
