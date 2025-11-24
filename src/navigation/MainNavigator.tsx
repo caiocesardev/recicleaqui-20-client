@@ -6,12 +6,15 @@ import { createDrawerNavigator, DrawerContentScrollView, DrawerItemList } from '
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useAuth } from '../context/AuthContext';
 
-// Importações diretas das telas
-import HomeScreen from '../screens/App/HomeScreen';
+// Importações das telas
+import HomeScreen from '../screens/App/HomeScreen/HomeScreen';
 import ProfileScreen from '../screens/App/ProfileScreen/ProfileScreen';
+// --- NOVO: Importar a tela de Descarte ---
+import DisposalScreen from '../screens/App/DisposalScreen/DisposalScreen';
 
 const Drawer = createDrawerNavigator();
 
+// --- CONTEÚDO PERSONALIZADO DO MENU ---
 function CustomDrawerContent(props: any) {
   const { signOut } = useAuth();
 
@@ -61,6 +64,7 @@ function CustomDrawerContent(props: any) {
   );
 }
 
+// --- O NAVEGADOR ---
 const MainNavigator = () => {
   return (
     <Drawer.Navigator
@@ -81,6 +85,17 @@ const MainNavigator = () => {
           drawerLabel: "Início"
         }}
       />
+      
+      {/* --- NOVA ROTA ADICIONADA AQUI --- */}
+      <Drawer.Screen 
+        name="Disposal" 
+        component={DisposalScreen} 
+        options={{
+          drawerIcon: ({ color }) => <MaterialCommunityIcons name="recycle" size={22} color={color} />,
+          drawerLabel: "Registrar Descarte"
+        }}
+      />
+
       <Drawer.Screen 
         name="Profile" 
         component={ProfileScreen} 

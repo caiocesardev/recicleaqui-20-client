@@ -1,7 +1,7 @@
 // Arquivo: src/screens/App/HomeScreen/HomeScreen.styles.ts
 
 import styled from 'styled-components/native';
-import { PRIMARY_COLOR } from '../Auth/LoginScreen/LoginScreen.styles';
+import { PRIMARY_COLOR } from '../../Auth/LoginScreen/LoginScreen.styles';
 
 export const Container = styled.View`
   flex: 1;

@@ -3,8 +3,6 @@
 import React, { useState } from 'react';
 import { StatusBar, TouchableOpacity, View, Keyboard } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage'; 
-
-// Importação correta dos ícones (SDK 54)
 import { MaterialCommunityIcons as Icon } from '@expo/vector-icons'; 
 
 // Importação do Hook de Autenticação

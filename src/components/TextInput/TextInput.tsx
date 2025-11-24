@@ -14,6 +14,7 @@ type TextInputProps = RNTextInputProps & {
 // --- Interface para o Estilo ---
 interface InputWrapperProps {
   hasError: boolean;
+  multiline?: boolean; // Adicionamos suporte a multiline no estilo
 }
 
 // --- Componentes Estilizados ---
@@ -27,16 +28,21 @@ const InputWrapper = styled(View)<InputWrapperProps>`
   width: 100%;
   position: relative;
   flex-direction: row;
-  align-items: center;
+  
+  align-items: ${(props: InputWrapperProps) => (props.multiline ? 'flex-start' : 'center')};
+  
   background-color: #fff;
   border-radius: 25px;
   
-  /* Agora o TypeScript sabe exatamente o que é 'props' */
+  height: ${(props: InputWrapperProps) => (props.multiline ? 'auto' : '55px')};
+  min-height: 55px; 
+  
   border-width: 1px;
   border-color: ${(props: InputWrapperProps) => (props.hasError ? '#ff4444' : '#e0e0e0')};
   
-  height: 55px;
   padding-left: 20px;
+  padding-top: ${(props: InputWrapperProps) => (props.multiline ? '10px' : '0px')};
+  padding-bottom: ${(props: InputWrapperProps) => (props.multiline ? '10px' : '0px')};
 `;
 
 const StyledInput = styled.TextInput`
@@ -44,6 +50,7 @@ const StyledInput = styled.TextInput`
   font-size: 16px;
   color: #333;
   padding-right: 48px; 
+  height: 100%; 
 `;
 
 const ErrorText = styled.Text`
@@ -57,7 +64,7 @@ const ErrorText = styled.Text`
 const IconContainer = styled.View`
   position: absolute;
   right: 12px;
-  height: 100%;
+  top: 12px; 
   justify-content: center;
   align-items: center;
   z-index: 10;
@@ -69,7 +76,7 @@ const IconContainer = styled.View`
 const TextInput = ({ error, children, rightIcon, onRightPress, ...props }: TextInputProps) => {
   return (
     <Container>
-      <InputWrapper hasError={!!error}>
+      <InputWrapper hasError={!!error} multiline={props.multiline}>
         <StyledInput
           placeholderTextColor="#A9A9A9"
           {...props}
