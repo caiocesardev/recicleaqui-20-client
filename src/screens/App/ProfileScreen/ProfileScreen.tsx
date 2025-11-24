@@ -126,7 +126,6 @@ const ProfileScreen = () => {
       
       Alert.alert("Sucesso", "Senha alterada com sucesso!");
       
-      // Limpar campos após sucesso
       setCurrentPassword('');
       setNewPassword('');
       setConfirmNewPassword('');
@@ -137,12 +136,6 @@ const ProfileScreen = () => {
     }
   };
 
-  const handleLogout = () => {
-    Alert.alert("Sair", "Tem certeza que deseja sair?", [
-      { text: "Cancelar", style: "cancel" },
-      { text: "Sair", onPress: signOut, style: "destructive" }
-    ]);
-  };
 
   return (
     <S.Container>
@@ -282,11 +275,6 @@ const ProfileScreen = () => {
             />
           </View>
         </S.FormCard>
-
-        <S.LogoutButton onPress={handleLogout}>
-          <MaterialCommunityIcons name="logout" size={20} color="#E74C3C" />
-          <S.LogoutText>Sair da Conta</S.LogoutText>
-        </S.LogoutButton>
 
         <View style={{ height: 20 }} />
       </S.ContentContainer>

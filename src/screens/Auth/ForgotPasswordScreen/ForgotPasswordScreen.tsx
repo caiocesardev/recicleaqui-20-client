@@ -29,11 +29,11 @@ const ForgotPasswordScreen = ({ navigation }: Props) => {
     try {
       await new Promise(resolve => setTimeout(resolve, 1500));
 
-      const BASE_URL = 'https://berta-journalish-outlandishly.ngrok-free.dev';
+      const apiUrl = process.env.EXPO_PUBLIC_API_URL || '';
       
       // Chamada para o endpoint de recuperação (ajuste a rota conforme seu backend real)
       // Estou assumindo '/api/v1/auth/forgot-password' ou similar
-      const res = await fetch(`${BASE_URL}/api/v1/auth/forgot-password`, {
+      const res = await fetch(`${apiUrl}/auth/forgot-password`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email }),
