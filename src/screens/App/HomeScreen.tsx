@@ -1,60 +1,109 @@
 // Arquivo: src/screens/App/HomeScreen/HomeScreen.tsx
 
-import React from 'react';
+import React, { useState, useCallback } from 'react';
 import { TouchableOpacity, ScrollView, View, Alert } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
-import { useNavigation } from '@react-navigation/native';
-// import { useAuth } from '../../../context/AuthContext';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+
 import * as S from './HomeScreen.styles';
 
+// Componentes
 import { GamificationCard } from '../../components/GamificationCard';
 import { InfoCard } from '../../components/InfoCard';
 
 const HomeScreen = () => {
   const insets = useSafeAreaInsets();
-  const navigation = useNavigation<any>(); 
+  const navigation = useNavigation<any>();
   
-  const userData = {
-    name: "Caio",
-    level: 7,
+  // --- ESTADOS DINÂMICOS ---
+  const [userName, setUserName] = useState('Usuário');
+  const [userAvatar, setUserAvatar] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+
+  // Dados de Gamificação 
+  const gamificationData = {
+    level: 8,
     xpCurrent: 700,
     xpNext: 1000,
-    avatarUrl: "https://i.pravatar.cc/150?img=12" 
+  };
+
+
+  useFocusEffect(
+    useCallback(() => {
+      fetchUserData();
+    }, [])
+  );
+
+  const fetchUserData = async () => {
+    try {
+      const token = await AsyncStorage.getItem('authToken');
+      const userId = await AsyncStorage.getItem('userId');
+
+      if (!token || !userId) return;
+
+      const BASE_URL = 'https://berta-journalish-outlandishly.ngrok-free.dev';
+      
+      const response = await fetch(`${BASE_URL}/api/v1/clients/${userId}`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+        },
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        const fullName = data.name || `${data.firstName || ''} ${data.lastName || ''}`.trim();
+        setUserName(fullName || 'Usuário');
+        if (data.avatarUrl) {
+          setUserAvatar(data.avatarUrl);
+        }
+      }
+    } catch (error) {
+      console.error("Erro ao carregar home:", error);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const handleNavigate = (screen: string) => {
-    console.log(`LOG: Navegar para ${screen}`); 
-    
     if (screen === 'Profile') {
-      // ESTA É A LINHA QUE FALTAVA:
-      navigation.navigate('Profile'); 
+      navigation.navigate('Profile');
     } else {
-      console.log(`Funcionalidade ${screen} ainda não implementada`);
+      console.log(`Navegar para ${screen} (Em breve)`);
     }
   };
 
   return (
     <S.Container>
+      
+      {/* === HEADER === */}
       <S.Header style={{ paddingTop: insets.top + 10 }}>
         <S.HeaderTop>
           
           <View style={{ flexDirection: 'row', alignItems: 'center', flex: 1 }}>
             <S.AvatarContainer onPress={() => handleNavigate('Profile')}>
-               {userData.avatarUrl ? (
-                 <S.AvatarImage source={{ uri: userData.avatarUrl }} />
-               ) : (
-                 <MaterialCommunityIcons name="account" size={32} color="#348e57" />
-               )}
+               <S.AvatarImage 
+                 source={
+                   userAvatar 
+                     ? { uri: userAvatar } 
+                     : require('../../../assets/images/avatar.png') 
+                 } 
+               />
             </S.AvatarContainer>
             
             <S.WelcomeContainer>
-              <S.HeaderTitle>Olá, {userData.name}!</S.HeaderTitle>
-              <S.HeaderSubtitle>
+              <S.HeaderTitle style={{ textAlign: 'left', fontSize: 18 }}>
+                Olá, {userName.split(' ')[0]}! 
+              </S.HeaderTitle>
+              <S.HeaderTitle style={{ textAlign: 'left', fontSize: 12, opacity: 0.8, fontFamily: 'Montserrat-Regular' }}>
                 Vamos reciclar hoje?
-              </S.HeaderSubtitle>
+              </S.HeaderTitle>
             </S.WelcomeContainer>
           </View>
+
           <S.HeaderIconButton onPress={() => console.log('Notificações')}>
             <MaterialCommunityIcons name="bell-outline" size={24} color="white" />
           </S.HeaderIconButton>
@@ -62,17 +111,19 @@ const HomeScreen = () => {
         </S.HeaderTop>
       </S.Header>
 
+      {/* === CONTEÚDO PRINCIPAL === */}
       <ScrollView 
         style={{ flex: 1, zIndex: 10 }} 
-        contentContainerStyle={{ paddingBottom: 5 }} 
+        contentContainerStyle={{ paddingBottom: 40 }} 
         showsVerticalScrollIndicator={false}
         overScrollMode="never"
       >
         
+        {/* Card de Gamificação */}
         <GamificationCard 
-          level={userData.level} 
-          currentXp={userData.xpCurrent} 
-          nextXp={userData.xpNext} 
+          level={gamificationData.level} 
+          currentXp={gamificationData.xpCurrent} 
+          nextXp={gamificationData.xpNext} 
         />
 
         <S.ActionsGrid>
@@ -92,7 +143,6 @@ const HomeScreen = () => {
           </S.SmallActionButton>
         </S.ActionsGrid>
 
-
         <S.TipsSection>
           <S.SectionTitle>Dicas Rápidas</S.SectionTitle>
           <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ paddingBottom: 20 }}>
@@ -105,7 +155,7 @@ const HomeScreen = () => {
 
       </ScrollView>
 
-      {/* === BOTTOM NAV === */}
+      {/* === BARRA INFERIOR === */}
       <S.BottomNav style={{ paddingBottom: insets.bottom + 10 }}>
         <S.BottomNavButton onPress={() => console.log('Home')}>
           <MaterialCommunityIcons name="home" size={28} color="#348e57" />

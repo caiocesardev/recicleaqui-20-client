@@ -27,12 +27,9 @@ const ProfileScreen = () => {
   }, []);
 
   const loadUserData = async () => {
-    // Aqui você faria o fetch da API igual na Home
-    // Por enquanto, vou simular dados para vermos a tela preenchida
     setName("Caio");
     setEmail("caiocesar.vec@gmail.com");
     setPhone("(11) 99999-9999");
-    // setAvatarUri("https://github.com/caiocesardev.png"); // Exemplo
   };
 
   // Função para escolher foto
@@ -41,8 +38,8 @@ const ProfileScreen = () => {
     const result = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: ImagePicker.MediaTypeOptions.Images,
       allowsEditing: true,
-      aspect: [1, 1], // Força corte quadrado
-      quality: 0.5,   // Comprime um pouco para não pesar
+      aspect: [1, 1], 
+      quality: 0.5,  
     });
 
     if (!result.canceled) {
@@ -56,14 +53,7 @@ const ProfileScreen = () => {
       // Simulação de envio para API
       await new Promise(resolve => setTimeout(resolve, 1500));
 
-      /* AQUI ENTRARIA O PUT/PATCH PARA A API:
-         const formData = new FormData();
-         formData.append('name', name);
-         if (avatarUri) {
-            // logica para envio de arquivo...
-         }
-         await api.put('/users', formData)...
-      */
+
 
       Alert.alert("Sucesso", "Perfil atualizado com sucesso!");
     } catch (error) {
@@ -93,12 +83,11 @@ const ProfileScreen = () => {
       <S.ContentContainer showsVerticalScrollIndicator={false}>
 
         <S.AvatarWrapper>
-          {/* LÓGICA DO AVATAR: */}
           <S.AvatarImage
             source={
               avatarUri
                 ? { uri: avatarUri } 
-                : require('../../../../assets/images/avatar.png') // 2. Se não, usa o padrão local
+                : require('../../../../assets/images/avatar.png') 
             }
           />
           <S.EditIconContainer onPress={handlePickImage}>

@@ -26,24 +26,24 @@ export const HeaderTitle = styled.Text`
 
 export const BackButton = styled.TouchableOpacity`
   position: absolute;
-  top: 50px; /* Ajuste conforme a StatusBar */
+  top: 50px; 
   left: 20px;
   z-index: 10;
   padding: 8px;
-  background-color: rgba(255, 255, 255, 0.2); /* Fundo semi-transparente para contraste */
+  background-color: rgba(255, 255, 255, 0.2); 
   border-radius: 12px;
 `;
 
 export const ContentContainer = styled.ScrollView`
   flex: 1;
-  margin-top: -50px; /* Sobe por cima do header */
+  margin-top: -50px; 
   padding-horizontal: 20px;
 `;
 
 export const AvatarWrapper = styled.View`
   align-self: center;
   margin-bottom: 20px;
-  position: relative; /* Para posicionar o ícone de câmera */
+  position: relative; 
 `;
 
 export const AvatarImage = styled.Image`
