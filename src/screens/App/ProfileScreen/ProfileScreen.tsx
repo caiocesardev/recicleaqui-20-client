@@ -5,10 +5,44 @@ import { Alert, View } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 import { useAuth } from '../../../context/AuthContext';
 import { Button, TextInput } from '../../../components';
 import * as S from './ProfileScreen.styles';
+
+// --- HELPERS DE MÁSCARA ---
+const onlyDigits = (s: string) => s.replace(/\D/g, '');
+
+const formatCPF = (v: string) => {
+  let d = v.replace(/\D/g, "");
+  d = d.replace(/(\d{3})(\d)/, "$1.$2");
+  d = d.replace(/(\d{3})(\d)/, "$1.$2");
+  d = d.replace(/(\d{3})(\d{1,2})$/, "$1-$2");
+  return d;
+};
+
+const formatCNPJ = (v: string) => {
+  let d = v.replace(/\D/g, "");
+  d = d.replace(/^(\d{2})(\d)/, "$1.$2");
+  d = d.replace(/^(\d{2})\.(\d{3})(\d)/, "$1.$2.$3");
+  d = d.replace(/\.(\d{3})(\d)/, ".$1/$2");
+  d = d.replace(/(\d{4})(\d)/, "$1-$2");
+  return d;
+};
+
+const formatPhone = (v: string) => {
+  let d = v.replace(/\D/g, "");
+  d = d.replace(/^(\d{2})(\d)/g, "($1) $2");
+  d = d.replace(/(\d)(\d{4})$/, "$1-$2");
+  return d;
+};
+
+const formatCEP = (v: string) => {
+  let d = v.replace(/\D/g, "");
+  d = d.replace(/^(\d{5})(\d)/, "$1-$2");
+  return d;
+};
 
 const ProfileScreen = () => {
   const navigation = useNavigation();
@@ -16,14 +50,28 @@ const ProfileScreen = () => {
   
   const [permissionStatus, requestPermission] = ImagePicker.useMediaLibraryPermissions();
   
+  const [clientType, setClientType] = useState<'individual' | 'company' | null>(null);
+  const [clientId, setClientId] = useState<number | null>(null);
+  
+  // Dados Pessoa Física
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
   const [cpf, setCpf] = useState('');
+  
+  // Dados Pessoa Jurídica
+  const [companyName, setCompanyName] = useState('');
+  const [tradeName, setTradeName] = useState('');
+  const [cnpj, setCnpj] = useState('');
+  
+  // Dados Comuns
   const [phone, setPhone] = useState('');
   const [email, setEmail] = useState('');
   const [avatarUri, setAvatarUri] = useState<string | null>(null);
 
+  // Endereço
+  const [addressId, setAddressId] = useState<number | null>(null);
   const [postalCode, setPostalCode] = useState('');
+  const [addressType, setAddressType] = useState('');
   const [addressName, setAddressName] = useState(''); 
   const [number, setNumber] = useState('');
   const [neighborhood, setNeighborhood] = useState(''); 
@@ -49,19 +97,63 @@ const ProfileScreen = () => {
   }, []);
 
   const loadUserData = async () => {
-    // Dados Mockados
-    setFirstName("Caio");
-    setLastName("César");
-    setEmail("caiocesar.vec@gmail.com");
-    setPhone("(11) 99999-9999");
-    setCpf("123.456.789-00");
-    
-    setPostalCode("01001-000");
-    setAddressName("Av. Paulista");
-    setNumber("1000");
-    setNeighborhood("Bela Vista");
-    setCity("São Paulo");
-    setState("SP");
+    try {
+      const token = await AsyncStorage.getItem('authToken');
+      if (!token) return;
+
+      const apiUrl = process.env.EXPO_PUBLIC_API_URL || '';
+      
+      const response = await fetch(`${apiUrl}/clients/me`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+        },
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        
+        setClientId(data.id);
+        setClientType(data.type);
+        setEmail(data.user?.email || '');
+        setPhone(data.phone || '');
+        
+        if (data.avatarUrl) {
+          setAvatarUri(data.avatarUrl);
+        }
+        
+        // Dados específicos por tipo
+        if (data.type === 'individual' && data.individual) {
+          setFirstName(data.individual.firstName || '');
+          setLastName(data.individual.lastName || '');
+          setCpf(formatCPF(data.individual.cpf || ''));
+        } else if (data.type === 'company' && data.company) {
+          setCompanyName(data.company.companyName || '');
+          setTradeName(data.company.tradeName || '');
+          setCnpj(formatCNPJ(data.company.cnpj || ''));
+        }
+        
+        // Dados do endereço
+        if (data.address) {
+          setAddressId(data.address.id);
+          setPostalCode(formatCEP(data.address.postalCode || ''));
+          setAddressType(data.address.addressType || '');
+          setAddressName(data.address.addressName || '');
+          setNumber(data.address.number || '');
+          setNeighborhood(data.address.neighborhood || '');
+          setCity(data.address.city || '');
+          setState(data.address.state || '');
+          setComplement(data.address.additionalInfo || '');
+        }
+        
+        // Formata o telefone
+        setPhone(formatPhone(data.phone || ''));
+      }
+    } catch (error) {
+      console.error("Erro ao carregar dados do perfil:", error);
+      Alert.alert("Erro", "Não foi possível carregar os dados do perfil.");
+    }
   };
 
   const handlePickImage = async () => {
@@ -92,10 +184,59 @@ const ProfileScreen = () => {
   const handleSaveProfile = async () => {
     setIsProfileLoading(true);
     try {
-      await new Promise(resolve => setTimeout(resolve, 1500));
-      // Lógica: PUT /clients/me
-      Alert.alert("Sucesso", "Dados atualizados com sucesso!");
+      const token = await AsyncStorage.getItem('authToken');
+      if (!token || !clientId || !clientType) {
+        Alert.alert("Erro", "Dados de autenticação não encontrados.");
+        return;
+      }
+
+      const apiUrl = process.env.EXPO_PUBLIC_API_URL || '';
+      
+      // Monta o payload e endpoint com base no tipo de cliente
+      let payload: any = {
+        phone: onlyDigits(phone),
+        address: {
+          postalCode: onlyDigits(postalCode),
+          addressType: addressType || 'Rua',
+          addressName,
+          number,
+          neighborhood,
+          city,
+          state,
+          additionalInfo: complement,
+        },
+      };
+      
+      let endpoint = '';
+      
+      if (clientType === 'individual') {
+        endpoint = `/clients/individual/${clientId}`;
+        payload.firstName = firstName;
+        payload.lastName = lastName;
+      } else if (clientType === 'company') {
+        endpoint = `/clients/company/${clientId}`;
+        payload.companyName = companyName;
+        payload.tradeName = tradeName;
+      }
+      
+      const response = await fetch(`${apiUrl}${endpoint}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+        },
+        body: JSON.stringify(payload),
+      });
+
+      if (response.ok) {
+        Alert.alert("Sucesso", "Dados atualizados com sucesso!");
+        await loadUserData(); // Recarrega os dados
+      } else {
+        const errorData = await response.json();
+        Alert.alert("Erro", errorData.message || "Não foi possível atualizar o perfil.");
+      }
     } catch (error) {
+      console.error("Erro ao atualizar perfil:", error);
       Alert.alert("Erro", "Não foi possível atualizar o perfil.");
     } finally {
       setIsProfileLoading(false);
@@ -159,28 +300,57 @@ const ProfileScreen = () => {
         </S.AvatarWrapper>
 
         <S.FormCard>
-          <S.SectionTitle>Dados Pessoais</S.SectionTitle>
+          <S.SectionTitle>
+            {clientType === 'individual' ? 'Dados Pessoais' : 'Dados da Empresa'}
+          </S.SectionTitle>
           
-          <TextInput 
-            placeholder="Nome" 
-            value={firstName} 
-            onChangeText={setFirstName} 
-            rightIcon={<MaterialCommunityIcons name="account-outline" size={20} color="#ccc" />}
-          />
-          
-          <TextInput 
-            placeholder="Sobrenome" 
-            value={lastName} 
-            onChangeText={setLastName} 
-          />
+          {clientType === 'individual' ? (
+            <>
+              <TextInput 
+                placeholder="Nome" 
+                value={firstName} 
+                onChangeText={setFirstName} 
+                rightIcon={<MaterialCommunityIcons name="account-outline" size={20} color="#ccc" />}
+              />
+              
+              <TextInput 
+                placeholder="Sobrenome" 
+                value={lastName} 
+                onChangeText={setLastName} 
+              />
 
-          <TextInput 
-            placeholder="CPF" 
-            value={cpf} 
-            editable={false}
-            style={{ opacity: 0.6, backgroundColor: '#f0f0f0' }}
-            rightIcon={<MaterialCommunityIcons name="card-account-details-outline" size={20} color="#ccc" />}
-          />
+              <TextInput 
+                placeholder="CPF" 
+                value={cpf} 
+                editable={false}
+                style={{ opacity: 0.6, backgroundColor: '#f0f0f0' }}
+                rightIcon={<MaterialCommunityIcons name="card-account-details-outline" size={20} color="#ccc" />}
+              />
+            </>
+          ) : (
+            <>
+              <TextInput 
+                placeholder="Nome Fantasia" 
+                value={tradeName} 
+                onChangeText={setTradeName} 
+                rightIcon={<MaterialCommunityIcons name="office-building" size={20} color="#ccc" />}
+              />
+              
+              <TextInput 
+                placeholder="Razão Social" 
+                value={companyName} 
+                onChangeText={setCompanyName} 
+              />
+
+              <TextInput 
+                placeholder="CNPJ" 
+                value={cnpj} 
+                editable={false}
+                style={{ opacity: 0.6, backgroundColor: '#f0f0f0' }}
+                rightIcon={<MaterialCommunityIcons name="card-account-details-outline" size={20} color="#ccc" />}
+              />
+            </>
+          )}
 
           <TextInput 
             placeholder="E-mail" 
@@ -193,8 +363,9 @@ const ProfileScreen = () => {
           <TextInput 
             placeholder="Telefone" 
             value={phone} 
-            onChangeText={setPhone} 
+            onChangeText={(text) => setPhone(formatPhone(text))} 
             keyboardType="phone-pad"
+            maxLength={15}
             rightIcon={<MaterialCommunityIcons name="phone-outline" size={20} color="#ccc" />}
           />
         </S.FormCard>
@@ -205,8 +376,9 @@ const ProfileScreen = () => {
           <TextInput 
             placeholder="CEP" 
             value={postalCode} 
-            onChangeText={setPostalCode} 
+            onChangeText={(text) => setPostalCode(formatCEP(text))} 
             keyboardType="numeric"
+            maxLength={9}
             rightIcon={<MaterialCommunityIcons name="map-marker-radius-outline" size={20} color="#ccc" />}
           />
 

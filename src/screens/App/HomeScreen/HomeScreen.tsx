@@ -40,7 +40,7 @@ const HomeScreen = () => {
 
       const apiUrl = process.env.EXPO_PUBLIC_API_URL || '';
       
-      const response = await fetch(`${apiUrl}/clients/${userId}`, {
+      const response = await fetch(`${apiUrl}/clients/me`, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
@@ -50,7 +50,17 @@ const HomeScreen = () => {
 
       if (response.ok) {
         const data = await response.json();
-        const fullName = data.name || `${data.firstName || ''} ${data.lastName || ''}`.trim();
+        
+        // Extrai o nome do usuário corretamente
+        let fullName = 'Usuário';
+        if (data.type === 'individual' && data.individual) {
+          const firstName = data.individual.firstName || '';
+          const lastName = data.individual.lastName || '';
+          fullName = `${firstName} ${lastName}`.trim();
+        } else if (data.type === 'company' && data.company) {
+          fullName = data.company.tradeName || data.company.companyName || 'Empresa';
+        }
+        
         setUserName(fullName || 'Usuário');
 
         if (data.avatarUrl) {
