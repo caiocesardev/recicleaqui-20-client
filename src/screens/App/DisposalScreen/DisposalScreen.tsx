@@ -1,22 +1,56 @@
 // Arquivo: src/screens/App/DisposalScreen/DisposalScreen.tsx
 
 import React, { useState, useCallback } from 'react';
-import { View, Alert, Linking, Platform } from 'react-native'; // 1. Adicionamos Linking e Platform
+import { View, Alert, Linking, Platform, Keyboard } from 'react-native';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
+
 import { Button, TextInput } from '../../../components';
+import { COLORS } from '../../../constants/colors';
 import * as S from './DisposalScreen.styles';
 
 type LineType = 'green' | 'brown' | 'blue' | 'white';
 
+// Configuração das Linhas (Agora usando as constantes globais)
+const LINE_CONFIG = {
+  green: { 
+    color: COLORS.lines.green, 
+    bg: COLORS.lines.greenBg, 
+    icon: 'laptop', 
+    title: 'Linha Verde', 
+    desc: 'Computadores, notebooks e celulares.' 
+  },
+  brown: { 
+    color: COLORS.lines.brown, 
+    bg: COLORS.lines.brownBg, 
+    icon: 'television-classic', 
+    title: 'Linha Marrom', 
+    desc: 'TVs, monitores e equipamentos de áudio.' 
+  },
+  blue: { 
+    color: COLORS.lines.blue, 
+    bg: COLORS.lines.blueBg, 
+    icon: 'blender', 
+    title: 'Linha Azul', 
+    desc: 'Eletroportáteis: Liquidificadores, secadores.' 
+  },
+  white: { 
+    color: COLORS.lines.white, 
+    bg: COLORS.lines.whiteBg, 
+    icon: 'fridge', 
+    title: 'Linha Branca', 
+    desc: 'Geladeiras, fogões e máquinas de lavar.' 
+  },
+};
+
 const DisposalScreen = () => {
   const navigation = useNavigation<any>();
   const [step, setStep] = useState(1);
-
+  
   const [selectedLines, setSelectedLines] = useState<LineType[]>([]);
   const [disposalMethod, setDisposalMethod] = useState<'pickup' | 'dropoff' | null>(null);
   const [itemsDescription, setItemsDescription] = useState('');
-  const [address, setAddress] = useState('Rua Exemplo, 123 - Centro (Meu Endereço)');
+  const [address, setAddress] = useState('Rua Exemplo, 123 - Centro');
   const [isLoading, setIsLoading] = useState(false);
 
   const collectionPoints = [
@@ -39,28 +73,16 @@ const DisposalScreen = () => {
     }, [])
   );
 
-  // --- 2. FUNÇÃO PARA ABRIR O MAPA ---
-  const openMap = (address: string) => {
-    // Codifica o endereço para ser usado na URL 
-    const query = encodeURIComponent(address);
-
-    // Define a URL baseada no sistema operacional
+  const openMap = (addressStr: string) => {
+    const query = encodeURIComponent(addressStr);
     const url = Platform.select({
       ios: `maps:0,0?q=${query}`,
       android: `geo:0,0?q=${query}`,
     });
-
-    // Fallback para URL web do Google Maps caso o esquema nativo falhe
     const webUrl = `https://www.google.com/maps/search/?api=1&query=${query}`;
 
     Linking.canOpenURL(url!)
-      .then((supported) => {
-        if (supported) {
-          return Linking.openURL(url!);
-        } else {
-          return Linking.openURL(webUrl);
-        }
-      })
+      .then((supported) => (supported ? Linking.openURL(url!) : Linking.openURL(webUrl)))
       .catch((err) => console.error('Erro ao abrir mapa:', err));
   };
 
@@ -72,114 +94,6 @@ const DisposalScreen = () => {
     }
   };
 
-  const renderStep1 = () => (
-    <>
-      <S.SectionTitle>Qual tipo de material?</S.SectionTitle>
-      <S.Subtitle style={{ marginBottom: 20 }}>Você pode selecionar mais de uma opção.</S.Subtitle>
-
-      <S.SelectionCard
-        selected={selectedLines.includes('green')}
-        color="#4CAF50"
-        onPress={() => handleSelectLine('green')}
-      >
-        <S.IconContainer color="#E8F5E9"><MaterialCommunityIcons name="laptop" size={24} color="#4CAF50" /></S.IconContainer>
-        <S.CardContent>
-          <S.CardTitle>Linha Verde</S.CardTitle>
-          <S.CardDescription>Computadores, notebooks, celulares e acessórios.</S.CardDescription>
-        </S.CardContent>
-        {selectedLines.includes('green') && <MaterialCommunityIcons name="check-circle" size={24} color="#4CAF50" />}
-      </S.SelectionCard>
-
-      <S.SelectionCard
-        selected={selectedLines.includes('brown')}
-        color="#8D6E63"
-        onPress={() => handleSelectLine('brown')}
-      >
-        <S.IconContainer color="#EFEBE9"><MaterialCommunityIcons name="television-classic" size={24} color="#8D6E63" /></S.IconContainer>
-        <S.CardContent>
-          <S.CardTitle>Linha Marrom</S.CardTitle>
-          <S.CardDescription>TVs, monitores, equipamentos de áudio e vídeo.</S.CardDescription>
-        </S.CardContent>
-        {selectedLines.includes('brown') && <MaterialCommunityIcons name="check-circle" size={24} color="#8D6E63" />}
-      </S.SelectionCard>
-
-      <S.SelectionCard
-        selected={selectedLines.includes('blue')}
-        color="#42A5F5"
-        onPress={() => handleSelectLine('blue')}
-      >
-        <S.IconContainer color="#E3F2FD"><MaterialCommunityIcons name="blender" size={24} color="#42A5F5" /></S.IconContainer>
-        <S.CardContent>
-          <S.CardTitle>Linha Azul</S.CardTitle>
-          <S.CardDescription>Eletroportáteis: Liquidificadores, secadores, ferros.</S.CardDescription>
-        </S.CardContent>
-        {selectedLines.includes('blue') && <MaterialCommunityIcons name="check-circle" size={24} color="#42A5F5" />}
-      </S.SelectionCard>
-
-      <S.SelectionCard
-        selected={selectedLines.includes('white')}
-        color="#9E9E9E"
-        onPress={() => handleSelectLine('white')}
-      >
-        <S.IconContainer color="#F5F5F5"><MaterialCommunityIcons name="fridge" size={24} color="#9E9E9E" /></S.IconContainer>
-        <S.CardContent>
-          <S.CardTitle>Linha Branca</S.CardTitle>
-          <S.CardDescription>Geladeiras, fogões, máquinas de lavar e ar-condicionado.</S.CardDescription>
-        </S.CardContent>
-        {selectedLines.includes('white') && <MaterialCommunityIcons name="check-circle" size={24} color="#9E9E9E" />}
-      </S.SelectionCard>
-
-      <Button
-        title="Continuar"
-        onPress={() => setStep(2)}
-        disabled={selectedLines.length === 0}
-        style={{ marginTop: 20 }}
-      />
-    </>
-  );
-
-  const renderStep2 = () => (
-    <>
-      <S.SectionTitle>Como deseja descartar?</S.SectionTitle>
-
-      <S.SelectionCard
-        selected={disposalMethod === 'pickup'}
-        onPress={() => setDisposalMethod('pickup')}
-      >
-        <S.IconContainer color="#E0F2F1"><MaterialCommunityIcons name="truck-delivery" size={28} color="#009688" /></S.IconContainer>
-        <S.CardContent>
-          <S.CardTitle>Coleta em Casa</S.CardTitle>
-          <S.CardDescription>Agendamos a retirada no seu endereço.</S.CardDescription>
-        </S.CardContent>
-        {disposalMethod === 'pickup' && <MaterialCommunityIcons name="radiobox-marked" size={24} color="#009688" />}
-      </S.SelectionCard>
-
-      <S.SelectionCard
-        selected={disposalMethod === 'dropoff'}
-        onPress={() => setDisposalMethod('dropoff')}
-      >
-        <S.IconContainer color="#E3F2FD"><MaterialCommunityIcons name="map-marker-check" size={28} color="#2196F3" /></S.IconContainer>
-        <S.CardContent>
-          <S.CardTitle>Levar a um Ponto</S.CardTitle>
-          <S.CardDescription>Você leva até o local mais próximo.</S.CardDescription>
-        </S.CardContent>
-        {disposalMethod === 'dropoff' && <MaterialCommunityIcons name="radiobox-marked" size={24} color="#2196F3" />}
-      </S.SelectionCard>
-
-      <Button
-        title="Continuar"
-        onPress={() => setStep(3)}
-        disabled={!disposalMethod}
-        style={{ marginTop: 20 }}
-      />
-      <Button
-        title="Voltar"
-        onPress={() => setStep(1)}
-        style={{ marginTop: 10, backgroundColor: '#ccc' }}
-      />
-    </>
-  );
-
   const handleCreateRequest = async () => {
     if (!itemsDescription) {
       Alert.alert("Atenção", "Descreva os itens que serão coletados.");
@@ -188,96 +102,169 @@ const DisposalScreen = () => {
     setIsLoading(true);
     await new Promise(r => setTimeout(r, 2000));
     setIsLoading(false);
-
+    
     Alert.alert("Sucesso!", "Sua solicitação de coleta foi criada.", [
       { text: "OK", onPress: () => navigation.goBack() }
     ]);
   };
 
+  // --- RENDERIZADORES ---
+
+  const renderLineCard = (type: LineType) => {
+    const config = LINE_CONFIG[type];
+    const isSelected = selectedLines.includes(type);
+    
+    return (
+      <S.SelectionCard 
+        key={type}
+        selected={isSelected} 
+        color={config.color}
+        onPress={() => handleSelectLine(type)}
+        activeOpacity={0.8}
+      >
+        <S.IconContainer color={config.bg}>
+          <MaterialCommunityIcons name={config.icon as any} size={24} color={config.color} />
+        </S.IconContainer>
+        <S.CardContent>
+          <S.CardTitle>{config.title}</S.CardTitle>
+          <S.CardDescription>{config.desc}</S.CardDescription>
+        </S.CardContent>
+        {isSelected && <MaterialCommunityIcons name="check-circle" size={24} color={config.color} />}
+      </S.SelectionCard>
+    );
+  };
+
+  const renderStep1 = () => (
+    <>
+      <S.SectionTitle>Qual tipo de material?</S.SectionTitle>
+      <S.DescriptionText>Você pode selecionar mais de uma opção.</S.DescriptionText>
+      
+      {renderLineCard('green')}
+      {renderLineCard('brown')}
+      {renderLineCard('blue')}
+      {renderLineCard('white')}
+
+      <S.ButtonContainer>
+        <Button 
+          title="Continuar" 
+          onPress={() => setStep(2)} 
+          disabled={selectedLines.length === 0} 
+        />
+      </S.ButtonContainer>
+    </>
+  );
+
+  const renderStep2 = () => (
+    <>
+      <S.SectionTitle>Como deseja descartar?</S.SectionTitle>
+
+      <S.SelectionCard 
+        selected={disposalMethod === 'pickup'} 
+        onPress={() => setDisposalMethod('pickup')}
+      >
+        {/* Usando COLORS.methods */}
+        <S.IconContainer color={COLORS.methods.pickupBg}>
+          <MaterialCommunityIcons name="truck-delivery" size={28} color={COLORS.methods.pickup} />
+        </S.IconContainer>
+        <S.CardContent>
+          <S.CardTitle>Coleta em Casa</S.CardTitle>
+          <S.CardDescription>Agendamos a retirada no seu endereço.</S.CardDescription>
+        </S.CardContent>
+        {disposalMethod === 'pickup' && <MaterialCommunityIcons name="radiobox-marked" size={24} color={COLORS.methods.pickup} />}
+      </S.SelectionCard>
+
+      <S.SelectionCard 
+        selected={disposalMethod === 'dropoff'} 
+        onPress={() => setDisposalMethod('dropoff')}
+      >
+        {/* Usando COLORS.methods */}
+        <S.IconContainer color={COLORS.methods.dropoffBg}>
+          <MaterialCommunityIcons name="map-marker-check" size={28} color={COLORS.methods.dropoff} />
+        </S.IconContainer>
+        <S.CardContent>
+          <S.CardTitle>Levar a um Ponto</S.CardTitle>
+          <S.CardDescription>Você leva até o local mais próximo.</S.CardDescription>
+        </S.CardContent>
+        {disposalMethod === 'dropoff' && <MaterialCommunityIcons name="radiobox-marked" size={24} color={COLORS.methods.dropoff} />}
+      </S.SelectionCard>
+
+      <S.ButtonContainer>
+        <Button title="Continuar" onPress={() => setStep(3)} disabled={!disposalMethod} />
+        <Button title="Voltar" onPress={() => setStep(1)} variant="secondary" />
+      </S.ButtonContainer>
+    </>
+  );
+
   const renderPickupForm = () => (
     <>
       <S.SectionTitle>Detalhes da Coleta</S.SectionTitle>
-
+      
       <S.FormLabel>O que será coletado?</S.FormLabel>
-      <TextInput
+      <TextInput 
         placeholder="Ex: 1 Geladeira antiga, 2 Monitores..."
         value={itemsDescription}
         onChangeText={setItemsDescription}
         multiline
         numberOfLines={4}
-        style={{
-          height: 120,
-          textAlignVertical: 'top',
-          paddingTop: 15,
-          paddingBottom: 15
-        }}
+        style={S.textAreaStyle} 
       />
 
       <S.FormLabel>Endereço de Retirada</S.FormLabel>
-      <TextInput
+      <TextInput 
         value={address}
         onChangeText={setAddress}
         placeholder="Seu endereço"
-        rightIcon={<MaterialCommunityIcons name="pencil" size={20} color="#999" />}
+        rightIcon={<MaterialCommunityIcons name="pencil" size={20} color={COLORS.textLight} />}
       />
 
-      <Button
-        title="Solicitar Coleta"
-        onPress={handleCreateRequest}
-        isLoading={isLoading}
-        style={{ marginTop: 20 }}
-      />
-      <Button title="Voltar" onPress={() => setStep(2)} style={{ marginTop: 10, backgroundColor: '#ccc' }} />
+      <S.ButtonContainer>
+        <Button title="Solicitar Coleta" onPress={handleCreateRequest} isLoading={isLoading} />
+        <Button title="Voltar" onPress={() => setStep(2)} variant="secondary" />
+      </S.ButtonContainer>
     </>
   );
 
   const renderDropoffMap = () => {
-    const filteredPoints = collectionPoints.filter(p =>
+    const filteredPoints = collectionPoints.filter(p => 
       selectedLines.some(line => p.lines.includes(line))
     );
 
     return (
       <>
         <S.SectionTitle>Pontos Próximos</S.SectionTitle>
-        <S.Subtitle style={{ color: '#666', marginBottom: 15, textAlign: 'left' }}>
-          Toque em um local para abrir no mapa e traçar a rota.
-        </S.Subtitle>
+        <S.DescriptionText>
+          Mostrando locais que aceitam seus materiais. Toque para abrir no mapa.
+        </S.DescriptionText>
 
         {filteredPoints.map(point => (
-          <S.PointCard
+          <S.PointCard 
             key={point.id}
             onPress={() => openMap(point.address)}
             activeOpacity={0.7}
           >
             <S.PointName>{point.name}</S.PointName>
             <S.PointAddress>{point.address}</S.PointAddress>
-
+            
             <S.PointDistance>
               <S.DistanceText>{point.distance}</S.DistanceText>
             </S.PointDistance>
 
-            <View style={{
-              marginTop: 12,
-              flexDirection: 'row',
-              alignItems: 'center',
-              borderTopWidth: 1,
-              borderTopColor: '#f0f0f0',
-              paddingTop: 8
-            }}>
-              <MaterialCommunityIcons name="directions" size={18} color="#348e57" />
-              <S.CardActionText>Traçar Rota</S.CardActionText>
-              <MaterialCommunityIcons
-                name="chevron-right"
-                size={18}
-                color="#ccc"
-                style={{ marginLeft: 'auto' }}
-              />
-            </View>
-
+            <S.PointFooter>
+               <MaterialCommunityIcons name="directions" size={18} color={COLORS.primary} />
+               <S.CardActionText>Traçar Rota</S.CardActionText>
+               <MaterialCommunityIcons 
+                 name="chevron-right" 
+                 size={18} 
+                 color={COLORS.gray} 
+                 style={{ marginLeft: 'auto' }} 
+               />
+            </S.PointFooter>
           </S.PointCard>
         ))}
 
-        <Button title="Voltar" onPress={() => setStep(2)} style={{ marginTop: 20, backgroundColor: '#ccc' }} />
+        <S.ButtonContainer>
+           <Button title="Voltar" onPress={() => setStep(2)} variant="secondary" />
+        </S.ButtonContainer>
       </>
     );
   };
@@ -286,7 +273,7 @@ const DisposalScreen = () => {
     <S.Container>
       <S.Header>
         <S.BackButton onPress={() => navigation.goBack()}>
-          <MaterialCommunityIcons name="arrow-left" size={24} color="white" />
+          <MaterialCommunityIcons name="arrow-left" size={24} color={COLORS.white} />
         </S.BackButton>
         <S.Title>Novo Descarte</S.Title>
         <S.Subtitle>

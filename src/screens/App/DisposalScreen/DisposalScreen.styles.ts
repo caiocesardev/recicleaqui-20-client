@@ -1,12 +1,11 @@
 // Arquivo: src/screens/App/DisposalScreen/DisposalScreen.styles.ts
 
 import styled from 'styled-components/native';
-
 import { COLORS } from '../../../constants/colors';
 
 export const Container = styled.View`
   flex: 1;
-  background-color: #f5f7fa;
+  background-color: ${COLORS.background};
 `;
 
 export const Header = styled.View`
@@ -21,7 +20,7 @@ export const Header = styled.View`
 export const Title = styled.Text`
   font-size: 22px;
   font-family: 'Montserrat-Bold';
-  color: white;
+  color: ${COLORS.white};
   text-align: center;
 `;
 
@@ -41,19 +40,27 @@ export const Content = styled.ScrollView`
 export const SectionTitle = styled.Text`
   font-size: 18px;
   font-family: 'Montserrat-Bold';
-  color: #333;
+  color: ${COLORS.text};
   margin-bottom: 15px;
   margin-top: 10px;
 `;
 
+export const DescriptionText = styled.Text`
+  font-size: 14px;
+  font-family: 'Montserrat-Regular';
+  color: #666;
+  margin-bottom: 20px;
+`;
+
 // --- CARDS DE SELEÇÃO ---
+
 interface SelectionCardProps {
   selected?: boolean;
   color?: string;
 }
 
 export const SelectionCard = styled.TouchableOpacity<SelectionCardProps>`
-  background-color: white;
+  background-color: ${COLORS.white};
   padding: 20px;
   border-radius: 16px;
   margin-bottom: 15px;
@@ -66,7 +73,6 @@ export const SelectionCard = styled.TouchableOpacity<SelectionCardProps>`
   shadow-opacity: 0.1;
   shadow-radius: 4px;
 
-  /* CORRIGIDO: Tipagem explícita */
   border-color: ${(props: SelectionCardProps) => (props.selected ? (props.color || COLORS.primary) : 'transparent')};
 `;
 
@@ -81,8 +87,6 @@ export const IconContainer = styled.View<IconContainerProps>`
   justify-content: center;
   align-items: center;
   margin-right: 15px;
-
-  /* CORRIGIDO: Tipagem explícita */
   background-color: ${(props: IconContainerProps) => props.color || '#eee'};
 `;
 
@@ -93,7 +97,7 @@ export const CardContent = styled.View`
 export const CardTitle = styled.Text`
   font-size: 16px;
   font-family: 'Montserrat-Bold';
-  color: #333;
+  color: ${COLORS.text};
   margin-bottom: 2px;
 `;
 
@@ -105,13 +109,6 @@ export const CardDescription = styled.Text`
   flex-wrap: wrap;
 `;
 
-export const CardActionText = styled.Text`
-  color: #348e57; /* PRIMARY_COLOR */
-  margin-left: 6px;
-  font-size: 13px;
-  font-family: 'Montserrat-Bold';
-`;
-
 // --- FORMULÁRIO ---
 export const FormLabel = styled.Text`
   font-size: 14px;
@@ -121,8 +118,14 @@ export const FormLabel = styled.Text`
   margin-top: 10px;
 `;
 
+export const ButtonContainer = styled.View`
+  margin-top: 20px;
+  gap: 10px;
+`;
+
+// --- LISTA DE PONTOS ---
 export const PointCard = styled.TouchableOpacity`
-  background-color: white;
+  background-color: ${COLORS.white};
   padding: 15px;
   border-radius: 12px;
   margin-bottom: 10px;
@@ -134,7 +137,7 @@ export const PointCard = styled.TouchableOpacity`
 export const PointName = styled.Text`
   font-size: 16px;
   font-family: 'Montserrat-Bold';
-  color: #333;
+  color: ${COLORS.text};
 `;
 
 export const PointAddress = styled.Text`
@@ -159,12 +162,36 @@ export const DistanceText = styled.Text`
   color: ${COLORS.primary};
 `;
 
+export const PointFooter = styled.View`
+  margin-top: 12px;
+  flex-direction: row;
+  align-items: center;
+  border-top-width: 1px;
+  border-top-color: #f0f0f0;
+  padding-top: 8px;
+`;
+
+export const CardActionText = styled.Text`
+  color: ${COLORS.primary};
+  margin-left: 6px;
+  font-size: 13px;
+  font-family: 'Montserrat-Bold';
+`;
+
 export const BackButton = styled.TouchableOpacity`
   position: absolute;
   top: 50px;
   left: 20px;
   z-index: 10;
   padding: 8px;
-  background-color: rgba(255,255,255,0.2);
+  background-color: ${COLORS.whiteTransparent || 'rgba(255,255,255,0.2)'};
   border-radius: 12px;
 `;
+
+// Estilo objeto para passar para o TextInput multiline
+export const textAreaStyle = {
+  height: 120,
+  textAlignVertical: 'top' as const,
+  paddingTop: 15,
+  paddingBottom: 15,
+};

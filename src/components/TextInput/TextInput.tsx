@@ -11,13 +11,10 @@ type TextInputProps = RNTextInputProps & {
   onRightPress?: () => void;
 };
 
-// --- Interface para o Estilo ---
 interface InputWrapperProps {
   hasError: boolean;
-  multiline?: boolean; // Adicionamos suporte a multiline no estilo
+  multiline?: boolean;
 }
-
-// --- Componentes Estilizados ---
 
 const Container = styled(View)`
   width: 100%;
@@ -28,28 +25,25 @@ const InputWrapper = styled(View)<InputWrapperProps>`
   width: 100%;
   position: relative;
   flex-direction: row;
-  
   align-items: ${(props: InputWrapperProps) => (props.multiline ? 'flex-start' : 'center')};
-  
   background-color: #fff;
   border-radius: 25px;
-  
   height: ${(props: InputWrapperProps) => (props.multiline ? 'auto' : '55px')};
-  min-height: 55px; 
-  
+  min-height: 55px;
   border-width: 1px;
   border-color: ${(props: InputWrapperProps) => (props.hasError ? '#ff4444' : '#e0e0e0')};
-  
   padding-left: 20px;
   padding-top: ${(props: InputWrapperProps) => (props.multiline ? '10px' : '0px')};
   padding-bottom: ${(props: InputWrapperProps) => (props.multiline ? '10px' : '0px')};
 `;
 
-const StyledInput = styled.TextInput`
+// ADICIONADA A PROPRIEDADE 'hasRightIcon'
+const StyledInput = styled.TextInput<{ hasRightIcon: boolean }>`
   flex: 1;
   font-size: 16px;
   color: #333;
-  padding-right: 48px; 
+  /* CORREÇÃO AQUI: Se não tiver ícone, remove o padding extra da direita */
+  padding-right: ${(props: { hasRightIcon: any; }) => (props.hasRightIcon ? '48px' : '20px')};
   height: 100%; 
 `;
 
@@ -71,16 +65,19 @@ const IconContainer = styled.View`
   elevation: 6;
 `;
 
-// --- Componente Principal ---
-
 const TextInput = ({ error, children, rightIcon, onRightPress, ...props }: TextInputProps) => {
+  // Verificamos se existe um ícone da direita ou children (ícone da esquerda geralmente fica fora do input no layout atual, mas se for interno, ajustamos)
+  const hasRightElement = !!rightIcon || !!children; 
+
   return (
     <Container>
       <InputWrapper hasError={!!error} multiline={props.multiline}>
         <StyledInput
           placeholderTextColor="#A9A9A9"
+          hasRightIcon={!!rightIcon} // Passamos a flag para o estilo
           {...props}
         />
+        
         <IconContainer>
           {rightIcon ? (
             <TouchableOpacity onPress={onRightPress} activeOpacity={0.7} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
