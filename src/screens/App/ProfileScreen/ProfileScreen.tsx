@@ -9,7 +9,6 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 
 import { useAuth } from '../../../context/AuthContext';
 import { Button, TextInput } from '../../../components';
-import { ClientProfileResponse } from '../../../types/Client';
 import { COLORS } from '../../../constants/colors';
 import * as S from './ProfileScreen.styles';
 
@@ -187,7 +186,7 @@ const ProfileScreen = () => {
           setComplement(data.address.additionalInfo || '');
         }
       } else {
-        if (response.status === 404) return; // Usuário novo
+        if (response.status === 404) return; 
         throw new Error(`Erro ${response.status}`);
       }
     } catch (error) {
@@ -271,7 +270,7 @@ const ProfileScreen = () => {
 
       if (response.ok) {
         Alert.alert("Sucesso", "Dados atualizados com sucesso!");
-        await loadUserData(); // Recarrega para garantir sincronia
+        await loadUserData(); 
       } else {
         const errorData = await response.json();
         Alert.alert("Erro", errorData.message || "Não foi possível atualizar o perfil.");
@@ -303,7 +302,6 @@ const ProfileScreen = () => {
 
     setIsPasswordLoading(true);
     try {
-      // Simulação de delay (substituir por chamada real POST /auth/change-password)
       await new Promise(resolve => setTimeout(resolve, 1500));
       
       Alert.alert("Sucesso", "Senha alterada com sucesso!");
@@ -485,11 +483,6 @@ const ProfileScreen = () => {
             <Button title="ATUALIZAR SENHA" onPress={handleChangePassword} isLoading={isPasswordLoading} />
           </View>
         </S.FormCard>
-
-        <S.LogoutButton onPress={handleLogout}>
-          <MaterialCommunityIcons name="logout" size={20} color={COLORS.error} />
-          <S.LogoutText>Sair da Conta</S.LogoutText>
-        </S.LogoutButton>
 
         <View style={{ height: 20 }} />
       </S.ContentContainer>

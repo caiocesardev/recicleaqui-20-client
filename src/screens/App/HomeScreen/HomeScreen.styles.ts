@@ -5,7 +5,7 @@ import { COLORS } from '../../../constants/colors';
 
 export const Container = styled.View`
   flex: 1;
-  background-color: #f2f4f8;
+  background-color: ${COLORS.background};
 `;
 
 // ============= HEADER =============
@@ -32,11 +32,11 @@ export const AvatarContainer = styled.TouchableOpacity`
   width: 56px; 
   height: 56px; 
   border-radius: 28px;
-  background-color: #fff;
+  background-color: ${COLORS.white};
   justify-content: center;
   align-items: center;
   border-width: 3px;
-  border-color: rgba(255,255,255,0.3);
+  border-color: ${COLORS.whiteTransparent}; 
   overflow: hidden;
 `;
 
@@ -53,19 +53,19 @@ export const WelcomeContainer = styled.View`
 export const HeaderTitle = styled.Text`
   font-size: 22px; 
   font-family: 'Montserrat-Bold';
-  color: white;
+  color: ${COLORS.white};
 `;
 
 export const HeaderSubtitle = styled.Text`
   font-size: 14px;
-  color: rgba(255,255,255,0.9);
+  color: rgba(255, 255, 255, 0.9); 
   font-family: 'Montserrat-Regular';
   margin-top: 2px;
 `;
 
 export const HeaderIconButton = styled.TouchableOpacity`
   padding: 10px;
-  background-color: rgba(255,255,255,0.2);
+  background-color: ${COLORS.whiteTransparent};
   border-radius: 14px;
   margin-left: 10px;
 `;
@@ -96,7 +96,7 @@ export const IconBox = styled.View`
   width: 50px;
   height: 50px;
   border-radius: 16px;
-  background-color: rgba(255, 255, 255, 0.2);
+  background-color: ${COLORS.whiteTransparent};
   align-items: center;
   justify-content: center;
 `;
@@ -108,7 +108,7 @@ export const ActionContent = styled.View`
 
 export const ActionTitle = styled.Text`
   font-family: 'Montserrat-Bold';
-  color: white;
+  color: ${COLORS.white};
   font-size: 18px;
   text-transform: uppercase;
   letter-spacing: 0.5px;
@@ -130,6 +130,6 @@ export const TipsSection = styled.View`
 export const SectionTitle = styled.Text`
   font-size: 20px;
   font-family: 'Montserrat-Bold';
-  color: #333;
+  color: ${COLORS.text};
   margin-bottom: 15px;
 `;

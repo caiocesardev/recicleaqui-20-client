@@ -8,6 +8,7 @@ import { MaterialCommunityIcons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 import * as S from './HomeScreen.styles';
+import { COLORS } from '../../../constants/colors'; 
 
 import { GamificationCard } from '../../../components/GamificationCard';
 import { InfoCard } from '../../../components/InfoCard';
@@ -38,9 +39,9 @@ const HomeScreen = () => {
 
       if (!token || !userId) return;
 
-      const apiUrl = process.env.EXPO_PUBLIC_API_URL || '';
+      const BASE_URL = process.env.EXPO_PUBLIC_API_URL || 'https://berta-journalish-outlandishly.ngrok-free.dev/api/v1';
       
-      const response = await fetch(`${apiUrl}/clients/me`, {
+      const response = await fetch(`${BASE_URL}/clients/${userId}`, { // Ajuste da rota se necessário
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
@@ -50,17 +51,7 @@ const HomeScreen = () => {
 
       if (response.ok) {
         const data = await response.json();
-        
-        // Extrai o nome do usuário corretamente
-        let fullName = 'Usuário';
-        if (data.type === 'individual' && data.individual) {
-          const firstName = data.individual.firstName || '';
-          const lastName = data.individual.lastName || '';
-          fullName = `${firstName} ${lastName}`.trim();
-        } else if (data.type === 'company' && data.company) {
-          fullName = data.company.tradeName || data.company.companyName || 'Empresa';
-        }
-        
+        const fullName = data.name || `${data.firstName || ''} ${data.lastName || ''}`.trim();
         setUserName(fullName || 'Usuário');
 
         if (data.avatarUrl) {
@@ -72,7 +63,6 @@ const HomeScreen = () => {
     }
   };
 
-  // --- FUNÇÃO DE NAVEGAÇÃO ATUALIZADA ---
   const handleNavigate = (screen: string) => {
     if (screen === 'Profile') {
       navigation.navigate('Profile');
@@ -89,6 +79,7 @@ const HomeScreen = () => {
 
   return (
     <S.Container>
+      
       <S.Header style={{ paddingTop: insets.top + 10 }}>
         <S.HeaderTop>
           <View style={{ flexDirection: 'row', alignItems: 'center', flex: 1 }}>
@@ -106,18 +97,19 @@ const HomeScreen = () => {
               <S.HeaderTitle style={{ textAlign: 'left', fontSize: 18 }}>
                 Olá, {userName.split(' ')[0]}!
               </S.HeaderTitle>
-              <S.HeaderTitle style={{ textAlign: 'left', fontSize: 12, opacity: 0.8, fontFamily: 'Montserrat-Regular' }}>
+              <S.HeaderSubtitle>
                 Vamos reciclar hoje?
-              </S.HeaderTitle>
+              </S.HeaderSubtitle>
             </S.WelcomeContainer>
           </View>
 
           <View style={{ flexDirection: 'row' }}>
             <S.HeaderIconButton onPress={() => console.log('Notificações')}>
-              <MaterialCommunityIcons name="bell-outline" size={24} color="white" />
+              <MaterialCommunityIcons name="bell-outline" size={24} color={COLORS.white} />
             </S.HeaderIconButton>
+            
             <S.HeaderIconButton onPress={openMenu} style={{ marginLeft: 8 }}>
-              <MaterialCommunityIcons name="menu" size={24} color="white" />
+              <MaterialCommunityIcons name="menu" size={24} color={COLORS.white} />
             </S.HeaderIconButton>
           </View>
         </S.HeaderTop>
@@ -139,7 +131,7 @@ const HomeScreen = () => {
         <S.ActionContainer>
           <S.MainActionButton onPress={() => handleNavigate('Registrar')} activeOpacity={0.9}>
             <S.IconBox>
-              <MaterialCommunityIcons name="recycle" size={32} color="white" />
+              <MaterialCommunityIcons name="recycle" size={32} color={COLORS.white} />
             </S.IconBox>
             <S.ActionContent>
               <S.ActionTitle>Registrar Descarte</S.ActionTitle>
@@ -152,10 +144,10 @@ const HomeScreen = () => {
         <S.TipsSection>
           <S.SectionTitle>O que reciclar? (Linhas)</S.SectionTitle>
           <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ paddingBottom: 20 }}>
-            <InfoCard icon="laptop" iconColor="#4CAF50" title="Linha Verde" description="Informática: Notebooks, mouses, teclados e tablets." />
-            <InfoCard icon="television-classic" iconColor="#8D6E63" title="Linha Marrom" description="Monitores, televisores, projetores e áudio." />
-            <InfoCard icon="blender" iconColor="#42A5F5" title="Linha Azul" description="Portáteis: Liquidificadores, secadores e ferros." />
-            <InfoCard icon="fridge" iconColor="#9E9E9E" title="Linha Branca" description="Geladeiras, fogões e máquinas de lavar." />
+            <InfoCard icon="laptop" iconColor={COLORS.lines.green} title="Linha Verde" description="Informática: Notebooks, mouses, teclados e tablets." />
+            <InfoCard icon="television-classic" iconColor={COLORS.lines.brown} title="Linha Marrom" description="Monitores, televisores, projetores e áudio." />
+            <InfoCard icon="blender" iconColor={COLORS.lines.blue} title="Linha Azul" description="Portáteis: Liquidificadores, secadores e ferros." />
+            <InfoCard icon="fridge" iconColor={COLORS.lines.white} title="Linha Branca" description="Geladeiras, fogões e máquinas de lavar." />
              <View style={{ width: 20 }} />
           </ScrollView>
         </S.TipsSection>

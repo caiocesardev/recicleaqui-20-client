@@ -3,12 +3,15 @@
 import React, { useState, useEffect } from 'react';
 import { StatusBar, View, Alert, Keyboard, ActivityIndicator } from 'react-native';
 import { MaterialCommunityIcons as Icon } from '@expo/vector-icons';
-import * as S from './RegisterScreen.styles';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
-import { Button, TextInput } from '../../../components';
-import { PRIMARY_COLOR } from '../LoginScreen/LoginScreen.styles';
 
-type Props = NativeStackScreenProps<any, 'Register'>;
+import { Button, TextInput } from '../../../components';
+import { COLORS } from '../../../constants/colors';
+import * as S from './RegisterScreen.styles';
+
+import { AuthStackParamList } from '../../../navigation/types'; // Garanta que esse import existe ou use 'any'
+
+type Props = NativeStackScreenProps<AuthStackParamList, 'Register'>;
 
 // --- HELPERS DE MÁSCARA ---
 const onlyDigits = (s: string) => s.replace(/\D/g, '');
@@ -42,7 +45,7 @@ const formatCEP = (v: string) => {
 const RegisterScreen = ({ navigation }: Props) => {
   const [step, setStep] = useState(1);
 
-  // Step 1
+  // Step 1 - Credenciais
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
@@ -52,7 +55,7 @@ const RegisterScreen = ({ navigation }: Props) => {
   const [passwordError, setPasswordError] = useState('');
   const [confirmPasswordError, setConfirmPasswordError] = useState('');
 
-  // Step 2
+  // Step 2 - Dados Pessoais
   const [clientType, setClientType] = useState<'individual' | 'company'>('individual');
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
@@ -69,7 +72,7 @@ const RegisterScreen = ({ navigation }: Props) => {
   const [cnpjError, setCnpjError] = useState('');
   const [phoneError, setPhoneError] = useState('');
 
-  // Step 3
+  // Step 3 - Endereço
   const [postalCode, setPostalCode] = useState('');
   const [addressName, setAddressName] = useState('');
   const [number, setNumber] = useState('');
@@ -85,30 +88,24 @@ const RegisterScreen = ({ navigation }: Props) => {
   const [stateError, setStateError] = useState('');
 
   const [isLoading, setIsLoading] = useState(false);
+  const [isSuccess, setIsSuccess] = useState(false); // --- NOVO ESTADO PARA SUCESSO ---
   const [isCepLoading, setIsCepLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
 
+  // Força da Senha
   const checkPasswordStrength = (pass: string) => {
+    let score = 0;
     if (!pass) return 0;
-
     const hasLength = pass.length >= 8;
     const hasUpper = /[A-Z]/.test(pass);
     const hasNumber = /[0-9]/.test(pass);
-    const hasSpecial = /[^A-Za-z0-9]/.test(pass); 
+    const hasSpecial = /[^A-Za-z0-9]/.test(pass);
 
-    if (!hasLength || !hasUpper || !hasNumber) {
-      return 1; // Vermelho
-    }
-
-    // Se passou da Regra 1, ela já é "Aceitável" (Nível 2)
-    let score = 2; 
-
-    // BÔNUS: Tem caractere especial?
-    if (hasSpecial) score += 1; // Nível 3 (Forte)
-
-    // BÔNUS: É bem longa? (> 10 chars)
-    if (pass.length > 10 && hasSpecial) score += 1; // Nível 4 (Muito Forte)
-
+    if (!hasLength || !hasUpper || !hasNumber) return 1;
+    
+    score = 2; 
+    if (hasSpecial) score += 1;
+    if (pass.length > 10 && hasSpecial) score += 1;
     return score;
   };
 
@@ -130,22 +127,19 @@ const RegisterScreen = ({ navigation }: Props) => {
   // --- VALIDAÇÕES ---
   const validateStep1 = () => {
     let isValid = true;
-    if (!email.includes('@') || email.length < 5) { 
-      setEmailError('Email inválido'); isValid = false; 
-    } else setEmailError('');
+    if (!email.includes('@') || email.length < 5) { setEmailError('Email inválido'); isValid = false; } else setEmailError('');
     
-    // Validação baseada na força calculada
-    if (passwordStrength < 2) { 
-      setPasswordError('Mínimo 8 caracteres, 1 letra maiúscula e 1 número.'); 
-      isValid = false; 
+    if (password.length < 8) {
+       setPasswordError('Mínimo 8 caracteres');
+       isValid = false;
+    } else if (passwordStrength < 2) { 
+       setPasswordError('Adicione maiúsculas e números.'); 
+       isValid = false; 
     } else { 
-      setPasswordError(''); 
+       setPasswordError(''); 
     }
     
-    if (password !== confirmPassword) { 
-      setConfirmPasswordError('Senhas não conferem'); isValid = false; 
-    } else setConfirmPasswordError('');
-    
+    if (password !== confirmPassword) { setConfirmPasswordError('Senhas não conferem'); isValid = false; } else setConfirmPasswordError('');
     return isValid;
   };
 
@@ -174,16 +168,16 @@ const RegisterScreen = ({ navigation }: Props) => {
   };
 
   const getStrengthColor = () => {
-    if (passwordStrength <= 1) return '#ff4444'; // Vermelho (Incompleta)
-    if (passwordStrength === 2) return '#ffbb33'; // Amarelo (Aceitável)
-    if (passwordStrength === 3) return '#00C851'; // Verde (Forte)
-    return '#007E33'; // Verde Escuro (Muito Forte)
+    if (passwordStrength <= 1) return COLORS.error;
+    if (passwordStrength === 2) return '#ffbb33';
+    if (passwordStrength === 3) return '#00C851';
+    return '#007E33';
   };
 
   const getStrengthLabel = () => {
     if (passwordStrength === 0) return '';
-    if (passwordStrength <= 1) return 'Fraca (Requisitos não atendidos)';
-    if (passwordStrength === 2) return 'Média (Aceitável)';
+    if (passwordStrength <= 1) return 'Fraca';
+    if (passwordStrength === 2) return 'Média';
     if (passwordStrength === 3) return 'Forte';
     return 'Muito Forte';
   };
@@ -256,8 +250,10 @@ const RegisterScreen = ({ navigation }: Props) => {
         payload.cnpj = onlyDigits(cnpj);
       }
       
-      const apiUrl = process.env.EXPO_PUBLIC_API_URL || 'https://berta-journalish-outlandishly.ngrok-free.dev/api/v1';
-      const fullUrl = apiUrl.includes('/api/v1') ? `${apiUrl}${endpoint}` : `${apiUrl}/api/v1${endpoint}`;
+      const apiUrl = process.env.EXPO_PUBLIC_API_URL;
+      if (!apiUrl) throw new Error("URL da API não configurada");
+      
+      const fullUrl = `${apiUrl}${endpoint}`;
 
       const res = await fetch(fullUrl, {
         method: 'POST',
@@ -267,27 +263,30 @@ const RegisterScreen = ({ navigation }: Props) => {
 
       if (!res.ok) {
         const data = await res.json().catch(() => null);
-        Alert.alert('Erro', data?.message || `Erro ${res.status}`);
+        const message = data?.message || data?.error || `Erro ${res.status}`;
+        Alert.alert('Erro no Cadastro', message);
+        setIsLoading(false); 
         return;
       }
-
-      Alert.alert('Sucesso', 'Conta criada com sucesso!', [
-        { text: 'Ir para Login', onPress: () => navigation.navigate('Login') }
-      ]);
+      setIsSuccess(true);
+      setIsLoading(false);
+      setTimeout(() => {
+        navigation.navigate('Login');
+      }, 2000);
 
     } catch (err) {
+      console.error(err);
       Alert.alert('Erro', 'Falha de conexão.');
-    } finally {
       setIsLoading(false);
     }
   };
 
   return (
     <S.SafeContainer>
-      <StatusBar barStyle="dark-content" backgroundColor="#fff" />
+      <StatusBar barStyle="dark-content" backgroundColor={COLORS.white} />
       <S.Header>
         <S.BackButton onPress={handleBack}>
-          <Icon name="arrow-left" size={30} color="#333" />
+          <Icon name="arrow-left" size={30} color={COLORS.text} />
         </S.BackButton>
         <S.HeaderTitle>Criar Conta</S.HeaderTitle>
       </S.Header>
@@ -320,7 +319,7 @@ const RegisterScreen = ({ navigation }: Props) => {
               value={password} 
               onChangeText={(t) => { setPassword(t); setPasswordError(''); }} 
               error={passwordError} 
-              rightIcon={<Icon name={showPassword ? "eye-off" : "eye"} size={20} color="#ccc" />}
+              rightIcon={<Icon name={showPassword ? "eye-off" : "eye"} size={20} color={COLORS.gray} />}
               onRightPress={() => setShowPassword(!showPassword)}
             />
 
@@ -350,52 +349,74 @@ const RegisterScreen = ({ navigation }: Props) => {
               error={confirmPasswordError} 
             />
 
-            <View style={{ marginTop: 20 }}>
-              <Button title="Próximo" onPress={handleNext} />
-            </View>
+            <S.Row>
+              <S.Col><Button title="Próximo" onPress={handleNext} /></S.Col>
+            </S.Row>
           </View>
         )}
         
         {step === 2 && (
           <View>
             <S.StepTitle>Dados Pessoais</S.StepTitle>
-            <View style={{ flexDirection: 'row', marginBottom: 20, gap: 10 }}>
-              <View style={{ flex: 1 }}>
+            
+            <S.Row>
+              <S.Col>
                  <Button 
                    title={clientType === 'individual' ? '✔ Pessoal' : 'Pessoal'} 
                    onPress={() => handleClientTypeChange('individual')}
-                   disabled={clientType === 'individual'} 
+                   variant={clientType === 'individual' ? 'primary' : 'secondary'} 
                  />
-              </View>
-              <View style={{ flex: 1 }}>
+              </S.Col>
+              <S.Col>
                  <Button 
                    title={clientType === 'company' ? '✔ Empresa' : 'Empresa'} 
                    onPress={() => handleClientTypeChange('company')}
-                   disabled={clientType === 'company'}
+                   variant={clientType === 'company' ? 'primary' : 'secondary'}
                  />
-              </View>
-            </View>
+              </S.Col>
+            </S.Row>
             
             {clientType === 'individual' ? (
               <>
                 <TextInput placeholder="Nome" value={firstName} onChangeText={setFirstName} error={firstNameError} />
                 <TextInput placeholder="Sobrenome" value={lastName} onChangeText={setLastName} error={lastNameError} />
-                <TextInput placeholder="CPF" keyboardType="number-pad" value={cpf} onChangeText={(t) => { const m = formatCPF(t); setCpf(m); if(onlyDigits(m).length===11) setCpfError(''); }} maxLength={14} error={cpfError} />
+                <TextInput 
+                  placeholder="CPF" 
+                  keyboardType="number-pad" 
+                  value={cpf} 
+                  onChangeText={(t) => { const m = formatCPF(t); setCpf(m); if(onlyDigits(m).length===11) setCpfError(''); }} 
+                  maxLength={14} 
+                  error={cpfError} 
+                />
               </>
             ) : (
               <>
                 <TextInput placeholder="Razão Social" value={companyName} onChangeText={setCompanyName} error={companyNameError} />
                 <TextInput placeholder="Nome Fantasia" value={tradeName} onChangeText={setTradeName} />
-                <TextInput placeholder="CNPJ" keyboardType="number-pad" value={cnpj} onChangeText={(t) => setCnpj(formatCNPJ(t))} maxLength={18} error={cnpjError} />
+                <TextInput 
+                  placeholder="CNPJ" 
+                  keyboardType="number-pad" 
+                  value={cnpj} 
+                  onChangeText={(t) => setCnpj(formatCNPJ(t))} 
+                  maxLength={18} 
+                  error={cnpjError} 
+                />
               </>
             )}
             
-            <TextInput placeholder="Telefone / Celular" keyboardType="phone-pad" value={phone} onChangeText={(t) => setPhone(formatPhone(t))} maxLength={15} error={phoneError} />
+            <TextInput 
+              placeholder="Telefone / Celular" 
+              keyboardType="phone-pad" 
+              value={phone} 
+              onChangeText={(t) => setPhone(formatPhone(t))} 
+              maxLength={15} 
+              error={phoneError} 
+            />
 
-            <View style={{ flexDirection: 'row', marginTop: 20, gap: 10 }}>
-              <View style={{ flex: 1 }}><Button title="Voltar" onPress={handleBack} style={{ backgroundColor: '#999' }} /></View>
-              <View style={{ flex: 1 }}><Button title="Próximo" onPress={handleNext} /></View>
-            </View>
+            <S.Row>
+              <S.Col><Button title="Voltar" onPress={handleBack} variant="secondary" /></S.Col>
+              <S.Col><Button title="Próximo" onPress={handleNext} /></S.Col>
+            </S.Row>
           </View>
         )}
 
@@ -409,49 +430,34 @@ const RegisterScreen = ({ navigation }: Props) => {
               onChangeText={handleCepChange} 
               maxLength={9} 
               error={postalCodeError} 
-              rightIcon={isCepLoading ? <ActivityIndicator color="#348e57" /> : null} 
+              rightIcon={isCepLoading ? <ActivityIndicator color={COLORS.primary} /> : null} 
             />
             <TextInput placeholder="Logradouro" value={addressName} onChangeText={setAddressName} error={addressNameError} />
             
-            <View style={{ flexDirection: 'row', gap: 10 }}>
-                <View style={{ flex: 1 }}>
-                    <TextInput 
-                      placeholder="Nº" 
-                      value={number} 
-                      onChangeText={(t) => { setNumber(t); setNumberError(''); }} 
-                      error={numberError} 
-                      keyboardType="number-pad" 
-                    />
-                </View>
-                <View style={{ flex: 2 }}>
-                    <TextInput 
-                      placeholder="Complemento" 
-                      value={complement} 
-                      onChangeText={setComplement} 
-                    />
-                </View>
-            </View>
+            <S.Row style={{ marginTop: 0 }}>
+                <S.Col><TextInput placeholder="Nº" value={number} onChangeText={(t) => { setNumber(t); setNumberError(''); }} error={numberError} keyboardType="number-pad" /></S.Col>
+                <S.Col style={{ flex: 2 }}><TextInput placeholder="Complemento (Opcional)" value={complement} onChangeText={setComplement} /></S.Col>
+            </S.Row>
             
             <TextInput placeholder="Bairro" value={neighborhood} onChangeText={setNeighborhood} />
             
-            <View style={{ flexDirection: 'row', gap: 10 }}>
-                <View style={{ flex: 2 }}><TextInput placeholder="Cidade" value={city} onChangeText={setCity} error={cityError} /></View>
-                <View style={{ flex: 1 }}>
-                   <TextInput 
-                      placeholder="UF" 
-                      value={state} 
-                      onChangeText={setState} 
-                      maxLength={2} 
-                      autoCapitalize="characters" 
-                      error={stateError} 
-                    />
-                </View>
-            </View>
+            <S.Row style={{ marginTop: 0 }}>
+                <S.Col style={{ flex: 2 }}><TextInput placeholder="Cidade" value={city} onChangeText={setCity} error={cityError} /></S.Col>
+                <S.Col><TextInput placeholder="UF" value={state} onChangeText={setState} maxLength={2} autoCapitalize="characters" error={stateError} /></S.Col>
+            </S.Row>
 
-            <View style={{ flexDirection: 'row', marginTop: 20, gap: 10 }}>
-              <View style={{ flex: 1 }}><Button title="Voltar" onPress={handleBack} style={{ backgroundColor: '#999' }} /></View>
-              <View style={{ flex: 1 }}><Button title={isLoading ? 'Criando...' : 'Finalizar'} onPress={handleSubmit} isLoading={isLoading} /></View>
-            </View>
+            <S.Row>
+              <S.Col><Button title="Voltar" onPress={handleBack} variant="secondary" /></S.Col>
+              <S.Col>
+                <Button 
+                  title={isSuccess ? "Conta Criada! ✓" : (isLoading ? "Criando..." : "Finalizar")} 
+                  onPress={handleSubmit} 
+                  isLoading={isLoading && !isSuccess} 
+                  disabled={isLoading || isSuccess}   
+                  style={isSuccess ? { backgroundColor: '#00C851' } : {}} 
+                />
+              </S.Col>
+            </S.Row>
           </View>
         )}
 

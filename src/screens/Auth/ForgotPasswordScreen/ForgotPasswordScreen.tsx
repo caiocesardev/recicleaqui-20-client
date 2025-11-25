@@ -4,8 +4,10 @@ import React, { useState } from 'react';
 import { StatusBar, Alert, Keyboard } from 'react-native';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { MaterialCommunityIcons as Icon } from '@expo/vector-icons';
-import { AuthStackParamList } from '../../../navigation/AuthNavigator';
+
+import { AuthStackParamList } from '../../../navigation/types';
 import { Button, TextInput } from '../../../components';
+import { COLORS } from '../../../constants/colors';
 import * as S from './ForgotPasswordScreen.styles';
 
 type Props = NativeStackScreenProps<AuthStackParamList, 'ForgotPassword'>;
@@ -31,8 +33,6 @@ const ForgotPasswordScreen = ({ navigation }: Props) => {
 
       const apiUrl = process.env.EXPO_PUBLIC_API_URL || '';
       
-      // Chamada para o endpoint de recuperação (ajuste a rota conforme seu backend real)
-      // Estou assumindo '/api/v1/auth/forgot-password' ou similar
       const res = await fetch(`${apiUrl}/auth/forgot-password`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -44,14 +44,12 @@ const ForgotPasswordScreen = ({ navigation }: Props) => {
         if (res.status === 404) {
           setEmailError('E-mail não encontrado em nosso sistema.');
         } else {
-          // Outros erros (servidor, etc)
           const data = await res.json().catch(() => ({}));
           setEmailError(data.message || 'Não foi possível enviar. Tente novamente.');
         }
         return;
       }
 
-      // Sucesso ( teste)
       Alert.alert(
         'E-mail Enviado',
         'Enviamos um link de recuperação para o seu e-mail. Verifique sua caixa de entrada (e spam).',
@@ -67,17 +65,18 @@ const ForgotPasswordScreen = ({ navigation }: Props) => {
       setIsLoading(false);
       setEmailError('Sem conexão com o servidor.');
     } finally {
+      // Se não houver erro no campo, o loading para (se houve sucesso, o Alert cuida da navegação)
       if (emailError) setIsLoading(false);
     }
   };
 
   return (
     <S.ScreenContainer>
-      <StatusBar barStyle="light-content" backgroundColor={S.Header.defaultProps?.style?.backgroundColor || '#348e57'} />
+      <StatusBar barStyle="light-content" backgroundColor={COLORS.primary} />
       
       <S.Header>
         <S.BackButton onPress={() => navigation.goBack()}>
-          <Icon name="arrow-left" size={28} color="#fff" />
+          <Icon name="arrow-left" size={28} color={COLORS.white} />
         </S.BackButton>
         <S.HeaderTitle>Recuperar Senha</S.HeaderTitle>
         <S.HeaderSubtitle>
@@ -101,19 +100,21 @@ const ForgotPasswordScreen = ({ navigation }: Props) => {
           returnKeyType="send"
           onSubmitEditing={handleResetPassword}
         >
-          <Icon 
+          <S.InputIcon 
             name="email-check-outline" 
             size={22} 
-            color={emailError ? '#ff4444' : '#888'} 
+            color={emailError ? COLORS.error : COLORS.textLight} 
           />
         </TextInput>
 
-        <Button 
-          title="ENVIAR LINK" 
-          onPress={handleResetPassword} 
-          isLoading={isLoading}
-          style={{ marginTop: 20 }}
-        />
+        <S.ButtonContainer>
+          <Button 
+            title="ENVIAR LINK" 
+            onPress={handleResetPassword} 
+            isLoading={isLoading}
+          />
+        </S.ButtonContainer>
+
       </S.FormContainer>
     </S.ScreenContainer>
   );
