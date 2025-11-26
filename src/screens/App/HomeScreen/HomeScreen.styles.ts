@@ -11,8 +11,8 @@ export const Container = styled.View`
 // ============= HEADER =============
 export const Header = styled.View`
   background-color: ${COLORS.primary};
-  padding-top: 12px;
-  padding-bottom: 40px;
+  height: 140px; 
+  justify-content: center; 
   border-bottom-left-radius: 30px;
   border-bottom-right-radius: 30px;
   elevation: 0; 
@@ -26,17 +26,20 @@ export const HeaderTop = styled.View`
   justify-content: space-between;
   align-items: center;
   padding: 0 24px; 
+  width: 100%;
+  margin-top: 20px; 
 `;
 
+// --- AVATAR MAIOR ---
 export const AvatarContainer = styled.TouchableOpacity`
-  width: 56px; 
-  height: 56px; 
-  border-radius: 28px;
+  width: 70px;  
+  height: 70px; 
+  border-radius: 35px; 
   background-color: ${COLORS.white};
   justify-content: center;
   align-items: center;
   border-width: 3px;
-  border-color: ${COLORS.whiteTransparent}; 
+  border-color: ${COLORS.whiteTransparent};
   overflow: hidden;
 `;
 
@@ -51,22 +54,23 @@ export const WelcomeContainer = styled.View`
 `;
 
 export const HeaderTitle = styled.Text`
-  font-size: 22px; 
+  font-size: 26px; 
   font-family: 'Montserrat-Bold';
   color: ${COLORS.white};
 `;
 
 export const HeaderSubtitle = styled.Text`
-  font-size: 14px;
-  color: rgba(255, 255, 255, 0.9); 
+  font-size: 16px; 
+  color: rgba(255, 255, 255, 0.9);
   font-family: 'Montserrat-Regular';
-  margin-top: 2px;
+  margin-top: 4px;
 `;
 
+// --- BOTÕES DO MENU MAIORES ---
 export const HeaderIconButton = styled.TouchableOpacity`
-  padding: 10px;
+  padding: 12px; 
   background-color: ${COLORS.whiteTransparent};
-  border-radius: 14px;
+  border-radius: 16px; 
   margin-left: 10px;
 `;
 

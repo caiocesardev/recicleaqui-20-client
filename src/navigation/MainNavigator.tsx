@@ -5,16 +5,16 @@ import { View, Text, TouchableOpacity, Image } from 'react-native';
 import { createDrawerNavigator, DrawerContentScrollView, DrawerItemList } from '@react-navigation/drawer';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useAuth } from '../context/AuthContext';
+import { COLORS } from '../constants/colors';
 
-// Importações das telas
+// Importações diretas das telas
 import HomeScreen from '../screens/App/HomeScreen/HomeScreen';
 import ProfileScreen from '../screens/App/ProfileScreen/ProfileScreen';
-// --- NOVO: Importar a tela de Descarte ---
 import DisposalScreen from '../screens/App/DisposalScreen/DisposalScreen';
+import HistoryScreen from '../screens/App/HistoryScreen/HistoryScreen';
 
 const Drawer = createDrawerNavigator();
 
-// --- CONTEÚDO PERSONALIZADO DO MENU ---
 function CustomDrawerContent(props: any) {
   const { signOut } = useAuth();
 
@@ -22,7 +22,7 @@ function CustomDrawerContent(props: any) {
     <View style={{ flex: 1 }}>
       <View style={{ 
         height: 250, 
-        backgroundColor: '#348e57', 
+        backgroundColor: COLORS.primary, 
         justifyContent: 'center', 
         alignItems: 'center', 
         paddingTop: 40,
@@ -34,12 +34,12 @@ function CustomDrawerContent(props: any) {
              width: 150, 
              height: 150, 
              resizeMode: 'contain', 
-             tintColor: 'white',
+             tintColor: COLORS.white,
              marginBottom: -20 
            }} 
         />
         <Text style={{ 
-          color: 'white', 
+          color: COLORS.white, 
           fontSize: 24, 
           fontFamily: 'Montserrat-Bold',
           marginTop: 0 
@@ -48,14 +48,16 @@ function CustomDrawerContent(props: any) {
         </Text>
       </View>
 
+      {/* Lista de Itens do Menu */}
       <DrawerContentScrollView {...props} contentContainerStyle={{ paddingTop: 10 }}>
         <DrawerItemList {...props} />
       </DrawerContentScrollView>
 
-      <View style={{ padding: 20, borderTopWidth: 1, borderTopColor: '#eee', marginBottom: 50 }}>
+      {/* Botão de Sair no Rodapé */}
+      <View style={{ padding: 20, borderTopWidth: 1, borderTopColor: '#eee', marginBottom: 20 }}>
         <TouchableOpacity onPress={signOut} style={{ flexDirection: 'row', alignItems: 'center' }}>
-          <MaterialCommunityIcons name="logout" size={22} color="#E74C3C" />
-          <Text style={{ marginLeft: 10, color: '#E74C3C', fontFamily: 'Montserrat-Bold' }}>
+          <MaterialCommunityIcons name="logout" size={22} color={COLORS.error} />
+          <Text style={{ marginLeft: 10, color: COLORS.error, fontFamily: 'Montserrat-Bold' }}>
             Sair da Conta
           </Text>
         </TouchableOpacity>
@@ -64,17 +66,17 @@ function CustomDrawerContent(props: any) {
   );
 }
 
-// --- O NAVEGADOR ---
+// --- NAVEGADOR  ---
 const MainNavigator = () => {
   return (
     <Drawer.Navigator
       drawerContent={(props) => <CustomDrawerContent {...props} />}
       screenOptions={{
-        headerShown: false,
-        drawerActiveTintColor: '#348e57',
-        drawerInactiveTintColor: '#333',
+        headerShown: false, 
+        drawerActiveTintColor: COLORS.primary,
+        drawerInactiveTintColor: COLORS.text,
         drawerLabelStyle: { fontFamily: 'Montserrat-Bold', marginLeft: -10 },
-        drawerStyle: { width: '80%' },
+        drawerStyle: { width: '80%' }, 
       }}
     >
       <Drawer.Screen 
@@ -86,13 +88,21 @@ const MainNavigator = () => {
         }}
       />
       
-      {/* --- NOVA ROTA ADICIONADA AQUI --- */}
       <Drawer.Screen 
         name="Disposal" 
         component={DisposalScreen} 
         options={{
           drawerIcon: ({ color }) => <MaterialCommunityIcons name="recycle" size={22} color={color} />,
           drawerLabel: "Registrar Descarte"
+        }}
+      />
+
+      <Drawer.Screen 
+        name="History" 
+        component={HistoryScreen} 
+        options={{
+          drawerIcon: ({ color }) => <MaterialCommunityIcons name="history" size={22} color={color} />,
+          drawerLabel: "Histórico"
         }}
       />
 

@@ -117,7 +117,6 @@ const HomeScreen = () => {
 
       <ScrollView 
         style={{ flex: 1, zIndex: 10 }} 
-        contentContainerStyle={{ paddingBottom: 40 }} 
         showsVerticalScrollIndicator={false}
         overScrollMode="never"
       >

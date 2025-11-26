@@ -19,7 +19,7 @@ const CardContainer = styled.View`
   margin: 10px 20px 20px;
   background-color: #ffffff;
   border-radius: 26px;
-  padding: 24px;
+  padding: 14px 22px;
   shadow-color: #000;
   shadow-offset: 0px 4px;
   shadow-opacity: 0.1;
