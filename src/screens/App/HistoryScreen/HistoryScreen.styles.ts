@@ -8,46 +8,30 @@ export const Container = styled.View`
   background-color: ${COLORS.background};
 `;
 
-// --- HEADER  ---
+// --- HEADER ---
 export const Header = styled.View`
+  padding: 20px;
+  padding-top: 60px;
   background-color: ${COLORS.primary};
-  /* MUDANÇA: Altura fixa igual ao ProfileScreen */
   height: 140px;
-  
-  /* Centraliza o conteúdo (Título e Botão) */
   justify-content: center;
   align-items: center;
-  
   border-bottom-left-radius: 30px;
   border-bottom-right-radius: 30px;
-  
   position: relative;
   z-index: 10;
-`;
-
-// O botão precisa de um ajuste fino no 'top' já que agora a altura é fixa
-export const MenuButton = styled.TouchableOpacity`
-  position: absolute;
-  /* Ajuste fino para alinhar com o título visualmente */
-  top: 60px; 
-  left: 20px;
-  z-index: 10;
-  padding: 8px;
-  background-color: ${COLORS.whiteTransparent || 'rgba(255,255,255,0.2)'};
-  border-radius: 12px;
 `;
 
 export const Title = styled.Text`
   font-size: 22px;
   font-family: 'Montserrat-Bold';
   color: ${COLORS.white};
-  /* Margem superior para compensar a StatusBar e alinhar com o botão */
-  margin-top: 20px; 
+  margin-top: 20px;
 `;
 
 export const BackButton = styled.TouchableOpacity`
   position: absolute;
-  top: 50px;
+  top: 60px;
   left: 20px;
   z-index: 10;
   padding: 8px;
@@ -55,9 +39,48 @@ export const BackButton = styled.TouchableOpacity`
   border-radius: 12px;
 `;
 
-export const ListContainer = styled.View`
-  flex: 1;
-  padding: 20px;
+// --- FILTROS (CHIPS) ---
+export const FilterContainer = styled.View`
+  padding-vertical: 15px;
+`;
+
+interface FilterChipProps {
+  isActive: boolean;
+}
+
+export const FilterChip = styled.TouchableOpacity<FilterChipProps>`
+  padding: 8px 16px;
+  border-radius: 20px;
+  background-color: ${(props: FilterChipProps) => props.isActive ? COLORS.primary : COLORS.white};
+  border-width: 1px;
+  border-color: ${(props: FilterChipProps) => props.isActive ? COLORS.primary : '#e0e0e0'};
+  margin-right: 10px;
+  elevation: 2;
+  shadow-color: #000;
+  shadow-offset: 0px 1px;
+  shadow-opacity: 0.1;
+  shadow-radius: 2px;
+`;
+
+export const FilterText = styled.Text<FilterChipProps>`
+  font-size: 12px;
+  font-family: 'Montserrat-Bold';
+  color: ${(props: FilterChipProps) => props.isActive ? COLORS.white : '#666'};
+`;
+
+// --- DATAS (SECTION HEADER) ---
+export const SectionHeader = styled.View`
+  padding-vertical: 10px;
+  background-color: ${COLORS.background}; 
+  margin-bottom: 5px;
+`;
+
+export const SectionHeaderText = styled.Text`
+  font-size: 13px;
+  font-family: 'Montserrat-Bold';
+  color: #888;
+  text-transform: uppercase;
+  letter-spacing: 1px;
 `;
 
 // --- CARD DO HISTÓRICO ---
@@ -65,7 +88,7 @@ export const HistoryCard = styled.View`
   background-color: ${COLORS.white};
   border-radius: 16px;
   padding: 16px;
-  margin-bottom: 15px;
+  margin-bottom: 5px; 
   
   shadow-color: #000;
   shadow-offset: 0px 2px;
@@ -74,7 +97,6 @@ export const HistoryCard = styled.View`
   elevation: 2;
   
   border-left-width: 4px;
-  /* A cor da borda é injetada via style inline no componente */
 `;
 
 export const CardHeader = styled.View`
@@ -84,13 +106,12 @@ export const CardHeader = styled.View`
   margin-bottom: 12px;
 `;
 
-export const DateText = styled.Text`
+export const TimeText = styled.Text`
   font-size: 12px;
   font-family: 'Montserrat-Regular';
-  color: #888;
+  color: #aaa;
 `;
 
-// Badge de Status
 interface StatusBadgeProps {
   bg: string;
 }
@@ -152,7 +173,6 @@ export const XpText = styled.Text`
 
 // --- EMPTY STATE ---
 export const EmptyContainer = styled.View`
-  flex: 1;
   align-items: center;
   justify-content: center;
   padding-top: 50px;
