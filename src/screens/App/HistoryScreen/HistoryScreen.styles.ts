@@ -29,7 +29,7 @@ export const Title = styled.Text`
   margin-top: 20px;
 `;
 
-export const BackButton = styled.TouchableOpacity`
+export const MenuButton = styled.TouchableOpacity`
   position: absolute;
   top: 60px;
   left: 20px;

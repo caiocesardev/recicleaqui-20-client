@@ -4,7 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { Alert, View } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, DrawerActions } from '@react-navigation/native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 import { useAuth } from '../../../context/AuthContext';
@@ -322,8 +322,8 @@ const ProfileScreen = () => {
 
   return (
     <S.Container>
-      <S.BackButton onPress={() => navigation.goBack()}>
-        <MaterialCommunityIcons name="arrow-left" size={24} color={COLORS.white} />
+      <S.BackButton onPress={() => navigation.dispatch(DrawerActions.openDrawer())}>
+        <MaterialCommunityIcons name="menu" size={24} color={COLORS.white} />
       </S.BackButton>
 
       <S.HeaderBackground>

@@ -1,8 +1,8 @@
 // Arquivo: src/screens/App/HistoryScreen/HistoryScreen.tsx
 
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect } from 'react';
 import { SectionList, View, ActivityIndicator, StatusBar, ScrollView, TouchableOpacity } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation } from '@react-navigation/native'; // Removido DrawerActions
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
@@ -11,7 +11,7 @@ import * as S from './HistoryScreen.styles';
 
 interface HistoryItem {
   id: number;
-  date: string; 
+  date: string;
   type: 'PICKUP' | 'DROPOFF';
   status: 'PENDING' | 'COMPLETED' | 'CANCELLED';
   items: string;
@@ -21,7 +21,7 @@ interface HistoryItem {
 type FilterType = 'TODOS' | 'PENDING' | 'COMPLETED' | 'CANCELLED';
 
 const HistoryScreen = () => {
-  const navigation = useNavigation();
+  const navigation = useNavigation<any>(); // <any> permite acessar openDrawer direto
   const [isLoading, setIsLoading] = useState(true);
   const [historyData, setHistoryData] = useState<HistoryItem[]>([]);
   const [activeFilter, setActiveFilter] = useState<FilterType>('TODOS');
@@ -33,14 +33,12 @@ const HistoryScreen = () => {
   const fetchHistory = async () => {
     try {
       setIsLoading(true);
-      // Simulação de delay
       await new Promise(r => setTimeout(r, 1000));
 
-      // Dados Mockados 
       const mockData: HistoryItem[] = [
         {
           id: 1,
-          date: '2025-11-25T14:30:00Z', // Hoje 
+          date: '2025-11-25T14:30:00Z',
           type: 'PICKUP',
           status: 'PENDING',
           items: '1 Geladeira, 1 Microondas',
@@ -48,7 +46,7 @@ const HistoryScreen = () => {
         },
         {
           id: 2,
-          date: '2025-11-25T09:15:00Z', // Hoje
+          date: '2025-11-25T09:15:00Z',
           type: 'DROPOFF',
           status: 'COMPLETED',
           items: '5kg de Baterias e Cabos',
@@ -56,7 +54,7 @@ const HistoryScreen = () => {
         },
         {
           id: 3,
-          date: '2025-11-24T16:00:00Z', // Ontem
+          date: '2025-11-24T16:00:00Z',
           type: 'PICKUP',
           status: 'CANCELLED',
           items: '2 Monitores Antigos',
@@ -64,7 +62,7 @@ const HistoryScreen = () => {
         },
         {
           id: 4,
-          date: '2025-11-10T11:00:00Z', // Passado
+          date: '2025-11-10T11:00:00Z',
           type: 'DROPOFF',
           status: 'COMPLETED',
           items: '1 Celular quebrado',
@@ -80,18 +78,16 @@ const HistoryScreen = () => {
     }
   };
 
-  // --- HELPERS DE DATA ---
   const formatDateHeader = (isoString: string) => {
     const date = new Date(isoString);
     const today = new Date();
     
-    // Zera as horas para comparar apenas o dia
     const d1 = new Date(date.getFullYear(), date.getMonth(), date.getDate());
     const d2 = new Date(today.getFullYear(), today.getMonth(), today.getDate());
 
     if (d1.getTime() === d2.getTime()) return 'Hoje';
     
-    d2.setDate(d2.getDate() - 1); // Ontem
+    d2.setDate(d2.getDate() - 1);
     if (d1.getTime() === d2.getTime()) return 'Ontem';
 
     return date.toLocaleDateString('pt-BR', { day: 'numeric', month: 'long' });
@@ -102,11 +98,11 @@ const HistoryScreen = () => {
     return date.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
   };
 
-  // --- LÓGICA DE FILTRO E AGRUPAMENTO ---
-  const sections = useMemo(() => {
+  const sections = React.useMemo(() => {
     const filtered = historyData.filter(item => 
       activeFilter === 'TODOS' ? true : item.status === activeFilter
     );
+
     const grouped: { [key: string]: HistoryItem[] } = {};
     
     filtered.forEach(item => {
@@ -120,14 +116,12 @@ const HistoryScreen = () => {
     const sortedKeys = Object.keys(grouped).sort((a, b) => new Date(b).getTime() - new Date(a).getTime());
 
     return sortedKeys.map(dateKey => ({
-      title: formatDateHeader(dateKey), 
-      data: grouped[dateKey] 
+      title: formatDateHeader(dateKey),
+      data: grouped[dateKey]
     }));
 
   }, [historyData, activeFilter]);
 
-
-  // --- CONFIGURAÇÃO VISUAL ---
   const getStatusConfig = (status: string) => {
     switch (status) {
       case 'COMPLETED': return { color: '#00C851', bg: '#E8F5E9', label: 'Concluído' };
@@ -179,13 +173,15 @@ const HistoryScreen = () => {
       <StatusBar barStyle="light-content" backgroundColor={COLORS.primary} />
 
       <S.Header>
-        <S.BackButton onPress={() => navigation.goBack()}>
-          <MaterialCommunityIcons name="arrow-left" size={24} color={COLORS.white} />
-        </S.BackButton>
+        {/* CORREÇÃO AQUI: Usando navigation.openDrawer() direto */}
+        <S.MenuButton onPress={() => navigation.openDrawer()}>
+          <MaterialCommunityIcons name="menu" size={28} color={COLORS.white} />
+        </S.MenuButton>
+        
         <S.Title>Histórico</S.Title>
       </S.Header>
 
-      {/* FILTROS */}
+      {/* Filtros */}
       <View style={{ paddingBottom: 5 }}>
         <ScrollView 
           horizontal 
@@ -226,7 +222,7 @@ const HistoryScreen = () => {
           keyExtractor={(item) => item.id.toString()}
           contentContainerStyle={{ padding: 20, paddingBottom: 50 }}
           showsVerticalScrollIndicator={false}
-          stickySectionHeadersEnabled={false} 
+          stickySectionHeadersEnabled={false}
           ListEmptyComponent={
             <S.EmptyContainer>
               <MaterialCommunityIcons name="history" size={60} color="#ddd" />
