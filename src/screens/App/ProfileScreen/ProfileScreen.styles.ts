@@ -7,42 +7,50 @@ type ThemeProps = {
   theme: typeof lightTheme;
 };
 
-
 export const Container = styled.View`
   flex: 1;
-  /* CORREÇÃO: Fundo dinâmico */
   background-color: ${(props: ThemeProps) => props.theme.colors.background};
 `;
 
+export const ContentContainer = styled.ScrollView`
+  flex: 1;
+`;
+
 export const HeaderBackground = styled.View`
-  height: 140px;
+  height: 160px;
   background-color: ${(props: ThemeProps) => props.theme.colors.primary};
   border-bottom-left-radius: 30px;
   border-bottom-right-radius: 30px;
   align-items: center;
-  justify-content: center;
-  z-index: 0;
+  padding-top: 60px;
+  width: 100%;
 `;
 
 export const HeaderTitle = styled.Text`
   color: ${(props: ThemeProps) => props.theme.colors.white};
   font-size: 20px;
   font-family: 'Montserrat-Bold';
-  margin-bottom: 20px;
+  margin-top: 10px;
 `;
 
-export const ContentContainer = styled.ScrollView`
-  flex: 1;
-  margin-top: -50px;
-  padding-horizontal: 20px;
-  z-index: 1;
+// --- AQUI ESTÁ A CORREÇÃO ---
+// Antes era 'BackButton', agora é 'MenuButton' para bater com o .tsx
+export const MenuButton = styled.TouchableOpacity`
+  position: absolute;
+  top: 60px;
+  left: 20px;
+  z-index: 10;
+  padding: 8px;
+  background-color: ${(props: ThemeProps) => props.theme.colors.whiteTransparent};
+  border-radius: 12px;
 `;
 
-// --- AVATAR ---
 export const AvatarWrapper = styled.View`
   align-self: center;
+  margin-top: -60px;
   margin-bottom: 20px;
   position: relative;
+  z-index: 10;
 `;
 
 export const AvatarImage = styled.Image`
@@ -50,7 +58,7 @@ export const AvatarImage = styled.Image`
   height: 120px;
   border-radius: 60px;
   border-width: 4px;
-  border-color: ${(props: ThemeProps) => props.theme.colors.surface};
+  border-color: ${(props: ThemeProps) => props.theme.colors.background};
   background-color: ${(props: ThemeProps) => props.theme.colors.placeholder}; 
 `;
 
@@ -65,11 +73,10 @@ export const EditIconContainer = styled.TouchableOpacity`
   justify-content: center;
   align-items: center;
   border-width: 3px;
-  border-color: ${(props: ThemeProps) => props.theme.colors.surface};
+  border-color: ${(props: ThemeProps) => props.theme.colors.background};
   elevation: 4;
 `;
 
-// --- CARDS ---
 export const FormCard = styled.View`
   background-color: ${(props: ThemeProps) => props.theme.colors.surface};
   border-radius: 20px;
@@ -80,6 +87,7 @@ export const FormCard = styled.View`
   shadow-radius: 8px;
   elevation: 3;
   margin-bottom: 20px;
+  margin-horizontal: 20px;
 `;
 
 export const SectionTitle = styled.Text`
@@ -103,50 +111,6 @@ export const Col = styled.View<ColProps>`
   flex: ${(props: ColProps) => props.flex || 1};
 `;
 
-// --- TEXTOS E BARRAS ---
-export const HelperText = styled.Text`
-  font-size: 11px;
-  color: ${(props: ThemeProps) => props.theme.colors.textLight};
-  margin-top: -5px;
-  margin-bottom: 10px;
-  margin-left: 5px;
-  font-family: 'Montserrat-Regular';
-`;
-
-export const StrengthContainer = styled.View`
-  margin-top: 5px;
-  margin-bottom: 15px;
-`;
-
-export const StrengthBarContainer = styled.View`
-  flex-direction: row;
-  height: 4px;
-  width: 100%;
-  background-color: ${(props: ThemeProps) => props.theme.colors.border};
-  border-radius: 2px;
-  overflow: hidden;
-`;
-
-interface StrengthProps {
-  width: string;
-  color: string;
-}
-
-export const StrengthBarFill = styled.View<StrengthProps>`
-  height: 100%;
-  width: ${(props: StrengthProps) => props.width};
-  background-color: ${(props: StrengthProps) => props.color};
-`;
-
-export const StrengthLabel = styled.Text<{ color: string }>`
-  font-size: 11px;
-  color: ${(props: { color: any; }) => props.color};
-  margin-top: 4px;
-  font-family: 'Montserrat-Bold';
-  text-align: right;
-`;
-
-// --- BOTÕES ---
 export const LogoutButton = styled.TouchableOpacity`
   flex-direction: row;
   align-items: center;
@@ -154,11 +118,9 @@ export const LogoutButton = styled.TouchableOpacity`
   padding: 15px;
   border-radius: 12px;
   border-width: 1px;
-  
   border-color: ${(props: ThemeProps) => props.theme.colors.errorBorder}; 
   background-color: ${(props: ThemeProps) => props.theme.colors.errorLight};
-  
-  margin-bottom: 40px;
+  margin: 0 20px 40px 20px;
 `;
 
 export const LogoutText = styled.Text`
@@ -166,14 +128,4 @@ export const LogoutText = styled.Text`
   font-family: 'Montserrat-Bold';
   font-size: 14px;
   margin-left: 8px;
-`;
-
-export const BackButton = styled.TouchableOpacity`
-  position: absolute;
-  top: 50px;
-  left: 20px;
-  z-index: 10;
-  padding: 8px;
-  background-color: ${(props: ThemeProps) => props.theme.colors.whiteTransparent};
-  border-radius: 12px;
 `;
