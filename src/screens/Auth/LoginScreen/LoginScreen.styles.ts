@@ -1,29 +1,25 @@
 // Arquivo: src/screens/Auth/LoginScreen/LoginScreen.styles.ts
 
 import styled from 'styled-components/native';
-import { Dimensions } from 'react-native';
 import Svg from 'react-native-svg';
-import { MaterialCommunityIcons as Icon } from '@expo/vector-icons';
-import { COLORS } from '../../../constants/colors';
-
-export const { width } = Dimensions.get('window');
 
 // --- COMPONENTES ESTILIZADOS ---
+
 export const ScreenContainer = styled.View`
   flex: 1;
-  background-color: ${COLORS.background};
+  background-color: ${(props: any) => props.theme.colors.background};
 `;
 
 export const HeaderContainer = styled.View`
   height: 250px;
   justify-content: center;
   align-items: center;
-  background-color: ${COLORS.primary};
+  background-color: ${(props: any) => props.theme.colors.primary};
 `;
 
 export const StyledSvg = styled(Svg)`
   position: absolute;
-  bottom: 0;
+  bottom: -1px; 
   left: 0;
   right: 0;
 `;
@@ -35,20 +31,21 @@ export const HeaderTextContainer = styled.View`
 
 export const Title = styled.Text`
   font-size: 40px;
-  font-weight: bold;
-  color: #fff;
   font-family: 'Montserrat-Bold';
+  color: ${(props: any) => props.theme.colors.white};
 `;
 
 export const Subtitle = styled.Text`
   font-size: 18px;
-  color: #fff;
   font-family: 'Montserrat-Regular';
+  color: ${(props: any) => props.theme.colors.white};
+  opacity: 0.9;
 `;
 
 export const FormContainer = styled.View`
   flex: 1;
-  background-color: #fff;
+  /* Fundo do cartão (Branco no Light / Cinza no Dark) */
+  background-color: ${(props: any) => props.theme.colors.surface};
   border-top-left-radius: 30px;
   border-top-right-radius: 30px;
   padding: 0 30px;
@@ -56,26 +53,29 @@ export const FormContainer = styled.View`
   margin-top: -30px;
 `;
 
-export const LogoImage = styled.Image.attrs({
-  resizeMode: 'contain',
-})<{
-  w?: number;
-  h?: number;
-}>(({ w = 340, h = 340 }) => ({ 
-  width: w,
-  height: h,
-  position: 'absolute',
-  top: -140, 
-  alignSelf: 'center',
-  zIndex: 10,
-}));
+export const LogoImage = styled.Image`
+  width: 340px;
+  height: 340px;
+  resize-mode: contain;
+  position: absolute;
+  top: -140px;
+  align-self: center;
+  z-index: 10;
+`;
+
+export const InputsWrapper = styled.View`
+  margin-top: 80px;
+  width: 100%;
+  gap: 5px; 
+`;
 
 export const OptionsContainer = styled.View`
   width: 100%;
-  align-items: flex-start;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
   margin-bottom: 20px;
-  margin-top: 5px;
-  padding-left: 15px;
+  margin-top: 10px;
 `;
 
 export const CheckboxContainer = styled.TouchableOpacity`
@@ -85,39 +85,35 @@ export const CheckboxContainer = styled.TouchableOpacity`
 
 export const CheckboxLabel = styled.Text`
   margin-left: 8px;
-  color: #666;
   font-size: 14px;
+  font-family: 'Montserrat-Regular';
+  color: ${(props: any) => props.theme.colors.text};
 `;
 
-export const ForgotPasswordButton = styled.TouchableOpacity`
-  margin-top: 12px;
-`;
+export const ForgotPasswordButton = styled.TouchableOpacity``;
 
 export const ForgotPasswordText = styled.Text`
-  color: ${COLORS.primary};
   font-size: 14px;
-  font-weight: 600;
+  font-family: 'Montserrat-Bold';
+  color: ${(props: any) => props.theme.colors.primary};
 `;
 
 export const RegisterContainer = styled.View`
   flex-direction: row;
   justify-content: center;
   margin-top: 30px;
+  align-items: center;
 `;
 
 export const RegisterText = styled.Text`
   font-size: 15px;
-  color: #666;
   font-family: 'Montserrat-Regular';
+  color: ${(props: any) => props.theme.colors.textLight};
 `;
 
 export const RegisterLink = styled.Text`
   font-size: 15px;
-  color: ${COLORS.primary};
   font-family: 'Montserrat-Bold';
+  color: ${(props: any) => props.theme.colors.primary};
   margin-left: 5px;
-`;
-
-export const InputIcon = styled(Icon)`
-  margin-left: 10px;
 `;

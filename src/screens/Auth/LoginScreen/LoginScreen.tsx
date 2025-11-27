@@ -1,25 +1,25 @@
 // Arquivo: src/screens/Auth/LoginScreen/LoginScreen.tsx
 
 import React, { useState, useCallback } from 'react';
-import { StatusBar, TouchableOpacity, View, Keyboard } from 'react-native';
+import { StatusBar, TouchableOpacity, Keyboard, Dimensions } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage'; 
-import { MaterialCommunityIcons as Icon } from '@expo/vector-icons'; 
-// CORREÇÃO 1: Importar Path do react-native-svg
+import { MaterialCommunityIcons } from '@expo/vector-icons'; 
 import { Path } from 'react-native-svg';
+import { useTheme } from 'styled-components/native'; // <-- Hook do Tema
 
 import { useAuth } from '../../../context/AuthContext';
 import { Button, TextInput } from '../../../components'; 
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
-
-// CORREÇÃO 2: Importar os tipos do arquivo separado (quebra o ciclo)
 import { AuthStackParamList } from '../../../navigation/types';
 
 import * as S from './LoginScreen.styles';
 
 type Props = NativeStackScreenProps<AuthStackParamList, 'Login'>;
+const { width } = Dimensions.get('window');
 
 const LoginScreen = ({ navigation }: Props) => {
   const { signIn } = useAuth();
+  const theme = useTheme(); 
 
   const [isPasswordVisible, setPasswordVisible] = useState(false);
   const [rememberMe, setRememberMe] = useState(false); 
@@ -31,13 +31,11 @@ const LoginScreen = ({ navigation }: Props) => {
   const [emailError, setEmailError] = useState('');
   const [passwordError, setPasswordError] = useState('');
   
-  // --- VALIDAÇÃO PROFISSIONAL ---
   const validateForm = () => {
     let isValid = true;
     setEmailError('');
     setPasswordError('');
     
-    // 1. Validação de E-mail (Regex padrão de mercado)
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!email) {
       setEmailError('Por favor, digite seu e-mail.');
@@ -47,41 +45,26 @@ const LoginScreen = ({ navigation }: Props) => {
       isValid = false;
     }
     
-    // 2. Validação de Senha (Apenas presença)
-    // NÃO validamos tamanho mínimo no Login para não bloquear usuários antigos
-    // se a política mudar. O backend que decida se está certo.
     if (!password) {
       setPasswordError('Por favor, digite sua senha.');
       isValid = false;
     }
-    
     return isValid;
   };
   
   const handleLogin = useCallback(async () => {
     Keyboard.dismiss();
-
     if (!validateForm()) return;
-    
     setIsLoading(true);
 
     try {
-      // Delay para feedback visual
       await new Promise(resolve => setTimeout(resolve, 1500));
-
-      // Pega URL do .env
       const apiUrl = process.env.EXPO_PUBLIC_API_URL;
       
-      // Tratamento caso a URL não esteja definida
-      if (!apiUrl) {
-        throw new Error('URL da API não configurada');
-      }
+      if (!apiUrl) throw new Error('URL da API não configurada');
 
-      // Monta a URL (evitando barra dupla se tiver)
       const baseUrl = apiUrl.endsWith('/') ? apiUrl.slice(0, -1) : apiUrl;
       const fullUrl = `${baseUrl}/auth/login`;
-
-      console.log('Tentando login em:', fullUrl);
 
       const res = await fetch(fullUrl, {
         method: 'POST',
@@ -93,16 +76,9 @@ const LoginScreen = ({ navigation }: Props) => {
 
       if (!res.ok) {
         setIsLoading(false);
-        const errorMessage = result?.message || 'Erro desconhecido';
-        
-        if (res.status === 404) {
-          setEmailError('E-mail não encontrado.');
-        } else if (res.status === 401) {
-          setPasswordError('Senha incorreta.');
-        } else {
-          // Erro genérico exibe na senha
-          setPasswordError(errorMessage);
-        }
+        if (res.status === 404) setEmailError('E-mail não encontrado.');
+        else if (res.status === 401) setPasswordError('Senha incorreta.');
+        else setPasswordError(result?.message || 'Erro desconhecido');
         return;
       }
 
@@ -113,7 +89,6 @@ const LoginScreen = ({ navigation }: Props) => {
         if (user && user.id) {
           await AsyncStorage.setItem('userId', String(user.id));
         }
-        // Contexto assume a navegação
         await signIn(token);
       } else {
         setIsLoading(false);
@@ -129,21 +104,20 @@ const LoginScreen = ({ navigation }: Props) => {
 
   return (
     <S.ScreenContainer>
-      <StatusBar barStyle="light-content" backgroundColor={S.PRIMARY_COLOR} />
+      {/* StatusBar usa cor do tema primário */}
+      <StatusBar barStyle="light-content" backgroundColor={theme.colors.primary} />
       
       <S.HeaderContainer>
         <S.HeaderTextContainer>
           <S.Title>Recicle Aqui</S.Title>
           <S.Subtitle>Descarte de lixo eletrônico inteligente</S.Subtitle>
         </S.HeaderTextContainer>
-        <S.StyledSvg
-          height="80"
-          width={S.width}
-          viewBox={`0 0 ${S.width} 80`}
-        >
+        
+        {/* Curva SVG adaptável ao tema */}
+        <S.StyledSvg height="80" width={width} viewBox={`0 0 ${width} 80`}>
           <Path
-            fill="#fff"
-            d={`M0,80 Q${S.width / 2},0 ${S.width},80 Z`}
+            fill={theme.colors.surface} 
+            d={`M0,80 Q${width / 2},0 ${width},80 Z`}
           />
         </S.StyledSvg>
       </S.HeaderContainer>
@@ -151,7 +125,7 @@ const LoginScreen = ({ navigation }: Props) => {
       <S.FormContainer>
         <S.LogoImage source={require('../../../../assets/images/logo-recicle-aqui.png')} />
         
-        <View style={{ marginTop: 80, width: '100%' }}>
+        <S.InputsWrapper>
           <TextInput
             placeholder="Email"
             keyboardType="email-address"
@@ -159,9 +133,14 @@ const LoginScreen = ({ navigation }: Props) => {
             value={email}
             onChangeText={(t) => { setEmail(t); setEmailError(''); }}
             error={emailError}
-          >
-            <S.InputIcon name="email-outline" size={22} color={emailError ? '#ff4444' : '#888'} />
-          </TextInput>
+            rightIcon={
+              <MaterialCommunityIcons 
+                name="email-outline" 
+                size={22} 
+                color={emailError ? theme.colors.error : theme.colors.textLight} 
+              />
+            }
+          />
 
           <TextInput
             placeholder="Senha"
@@ -169,22 +148,22 @@ const LoginScreen = ({ navigation }: Props) => {
             value={password}
             onChangeText={(t) => { setPassword(t); setPasswordError(''); }}
             error={passwordError}
-          >
-            <TouchableOpacity onPress={() => setPasswordVisible(prev => !prev)}>
-              <S.InputIcon 
+            rightIcon={
+              <MaterialCommunityIcons 
                 name={isPasswordVisible ? 'eye-off' : 'eye'} 
                 size={24} 
-                color={passwordError ? '#ff4444' : '#888'} 
+                color={passwordError ? theme.colors.error : theme.colors.textLight} 
               />
-            </TouchableOpacity>
-          </TextInput>
+            }
+            onRightPress={() => setPasswordVisible(prev => !prev)}
+          />
           
           <S.OptionsContainer>
             <S.CheckboxContainer onPress={() => setRememberMe(prev => !prev)}>
-              <Icon 
+              <MaterialCommunityIcons 
                 name={rememberMe ? 'toggle-switch' : 'toggle-switch-off-outline'} 
                 size={30} 
-                color={S.PRIMARY_COLOR} 
+                color={theme.colors.primary} // Cor do tema
               />
               <S.CheckboxLabel>Manter-me conectado</S.CheckboxLabel>
             </S.CheckboxContainer>
@@ -195,7 +174,7 @@ const LoginScreen = ({ navigation }: Props) => {
           </S.OptionsContainer>
 
           <Button title="ENTRAR" onPress={handleLogin} isLoading={isLoading} />
-        </View>
+        </S.InputsWrapper>
         
         <S.RegisterContainer>
           <S.RegisterText>Não tem uma conta?</S.RegisterText>

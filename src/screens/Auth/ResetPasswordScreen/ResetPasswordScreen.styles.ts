@@ -1,4 +1,4 @@
-// Arquivo: src/screens/Auth/ForgotPasswordScreen/ForgotPasswordScreen.styles.ts
+// Arquivo: src/screens/Auth/ResetPasswordScreen/ResetPasswordScreen.styles.ts
 
 import styled from 'styled-components/native';
 import { MaterialCommunityIcons as Icon } from '@expo/vector-icons';
@@ -31,9 +31,7 @@ export const HeaderSubtitle = styled.Text`
   color: rgba(255, 255, 255, 0.9);
   text-align: center;
   margin-top: 5px;
-  margin-bottom: 20px;
   padding-horizontal: 20px;
-  line-height: 22px;
 `;
 
 export const BackButton = styled.TouchableOpacity`
@@ -49,8 +47,7 @@ export const BackButton = styled.TouchableOpacity`
 export const FormContainer = styled.ScrollView`
   flex: 1;
   padding: 24px;
-  /* CORREÇÃO: Margem positiva para descer o card e não sobrepor o header */
-  margin-top: 10px; 
+  margin-top: -30px;
 `;
 
 export const Card = styled.View`
@@ -62,41 +59,33 @@ export const Card = styled.View`
   shadow-opacity: 0.1;
   shadow-radius: 8px;
   elevation: 4;
-  align-items: center;
-  margin-bottom: 40px; /* Espaço extra no final do scroll */
 `;
 
-export const DescriptionText = styled.Text`
-  font-size: 15px;
-  color: ${(props: any) => props.theme.colors.textLight}; 
-  text-align: center;
-  margin-bottom: 24px;
-  font-family: 'Montserrat-Regular';
-  line-height: 22px;
-`;
-
-// --- NOVO: Texto de Regras de Senha ---
-export const RulesText = styled.Text`
-  font-size: 12px;
-  color: ${(props: any) => props.theme.colors.textLight};
+export const InputLabel = styled.Text`
+  font-size: 14px;
+  font-family: 'Montserrat-Bold';
+  color: ${(props: any) => props.theme.colors.text};
+  margin-bottom: 8px;
   margin-top: 10px;
-  margin-bottom: 5px;
-  text-align: center;
+`;
+
+export const HelperText = styled.Text`
+  font-size: 12px;
   font-family: 'Montserrat-Regular';
-  background-color: ${(props: any) => props.theme.colors.background};
-  padding: 10px;
-  border-radius: 8px;
-  width: 100%;
+  color: ${(props: any) => props.theme.colors.textLight};
+  margin-bottom: 20px;
+  text-align: center;
 `;
 
 export const ButtonContainer = styled.View`
-  width: 100%;
-  margin-top: 20px;
+  margin-top: 24px;
 `;
 
 export const InputIcon = styled(Icon)`
   margin-left: 10px;
 `;
+
+// --- NOVOS ESTILOS PARA FEEDBACK PROFISSIONAL ---
 
 export const ErrorMessage = styled.Text`
   color: ${(props: any) => props.theme.colors.error};
@@ -104,53 +93,39 @@ export const ErrorMessage = styled.Text`
   font-family: 'Montserrat-Bold';
   text-align: center;
   margin-top: 10px;
-  width: 100%;
+  background-color: ${(props: any) => props.theme.colors.errorLight || '#ffebee'};
+  padding: 10px;
+  border-radius: 8px;
+  overflow: hidden;
 `;
 
-// --- OTP / CÓDIGO ---
-
-export const CodeInputContainer = styled.View`
-  flex-direction: row;
-  justify-content: space-between;
-  width: 100%;
-  margin-bottom: 20px;
-`;
-
-export const CodeBox = styled.View<{ isFocused: boolean }>`
-  width: 45px;
-  height: 55px;
-  border-width: 2px;
-  border-color: ${(props: any) => props.isFocused ? props.theme.colors.primary : props.theme.colors.border};
-  border-radius: 12px;
-  background-color: ${(props: any) => props.theme.colors.background};
+export const SuccessContainer = styled.View`
+  flex: 1;
   align-items: center;
   justify-content: center;
+  padding: 40px;
+  background-color: ${(props: any) => props.theme.colors.surface};
+  border-radius: 20px;
+  margin-top: -30px;
+  margin-horizontal: 24px;
+  shadow-color: #000;
+  elevation: 5;
 `;
 
-export const CodeText = styled.Text`
-  font-size: 24px;
+export const SuccessTitle = styled.Text`
+  font-size: 22px;
   font-family: 'Montserrat-Bold';
-  color: ${(props: any) => props.theme.colors.text};
-`;
-
-export const HiddenTextInput = styled.TextInput`
-  position: absolute;
-  width: 100%;
-  height: 100%;
-  opacity: 0;
-`;
-
-// --- LINKS ---
-
-export const LinkButton = styled.TouchableOpacity`
-  margin-top: 15px;
-  padding: 10px;
-`;
-
-export const LinkText = styled.Text`
-  font-size: 14px;
-  font-family: 'Montserrat-Bold';
-  color: ${(props: any) => props.theme.colors.textLight};
-  text-decoration-line: underline;
+  color: ${(props: any) => props.theme.colors.primary};
+  margin-top: 20px;
+  margin-bottom: 10px;
   text-align: center;
+`;
+
+export const SuccessMessage = styled.Text`
+  font-size: 14px;
+  font-family: 'Montserrat-Regular';
+  color: ${(props: any) => props.theme.colors.textLight};
+  text-align: center;
+  margin-bottom: 30px;
+  line-height: 20px;
 `;
