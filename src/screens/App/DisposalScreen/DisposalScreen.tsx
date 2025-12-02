@@ -1,7 +1,8 @@
 // Arquivo: src/screens/App/DisposalScreen/DisposalScreen.tsx
 
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import { View, Alert, Linking, Platform, Keyboard } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useTheme } from 'styled-components/native';
@@ -20,10 +21,24 @@ const DisposalScreen = () => {
   
   const [selectedLines, setSelectedLines] = useState<LineType[]>([]);
   const [disposalMethod, setDisposalMethod] = useState<'pickup' | 'dropoff' | null>(null);
+  const [eligiblePoints, setEligiblePoints] = useState<Array<{ id: number; name: string; address: string; distance?: string; acceptedLines?: string[] }>>([]);
+  const [selectedPointId, setSelectedPointId] = useState<number | null>(null);
   
   // Campos do Formulário
   const [itemsDescription, setItemsDescription] = useState('');
   const [address, setAddress] = useState('Rua Exemplo, 123 - Centro');
+  const [addressData, setAddressData] = useState({
+    street: '',
+    number: '',
+    neighborhood: '',
+    city: '',
+    state: '',
+    complement: '',
+  });
+  const [clientId, setClientId] = useState<string | null>(null);
+  const [successVisible, setSuccessVisible] = useState(false);
+  const [errorVisible, setErrorVisible] = useState(false);
+  const [errorMessage, setErrorMessage] = useState('');
   
   // --- NOVOS ESTADOS DE ERRO ---
   const [itemsError, setItemsError] = useState('');
@@ -77,13 +92,77 @@ const DisposalScreen = () => {
     setItemsError('');
     setAddressError('');
     setIsLoading(false);
+    setSuccessVisible(false);
+    setErrorVisible(false);
+    setErrorMessage('');
   };
 
   useFocusEffect(
     useCallback(() => {
+      // Ao sair da tela, limpa estados
       return () => resetFields();
     }, [])
   );
+
+  useEffect(() => {
+    // Carrega dados do cliente (id e endereço) ao montar
+    const loadClientData = async () => {
+      try {
+        const token = await AsyncStorage.getItem('authToken');
+        const storedUserId = await AsyncStorage.getItem('userId');
+        setClientId(storedUserId);
+        if (!token) return;
+
+        const rawBase = process.env.EXPO_PUBLIC_API_URL || '';
+        const apiUrl = (rawBase.replace(/\/$/, '') || 'https://berta-journalish-outlandishly.ngrok-free.dev/api/v1');
+        const res = await fetch(`${apiUrl}/clients/me`, {
+          method: 'GET',
+          headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+        });
+        if (!res.ok) return;
+        const data = await res.json();
+        console.log('Dados do cliente:', JSON.stringify(data, null, 2)); // Debug
+        // Extrai endereço estruturado - tenta múltiplas localizações possíveis
+        let addr = data.address || {};
+        
+        // Se não encontrou no nível raiz, tenta no individual ou company
+        if (!addr.street && !addr.city) {
+          if (data.individual?.address) {
+            addr = data.individual.address;
+          } else if (data.company?.address) {
+            addr = data.company.address;
+          }
+        }
+        
+        console.log('Endereço extraído:', JSON.stringify(addr, null, 2)); // Debug
+        
+        if (addr.addressName || addr.city) {
+          setAddressData({
+            street: addr.addressName || '',
+            number: addr.number || '',
+            neighborhood: addr.neighborhood || '',
+            city: addr.city || '',
+            state: addr.state || '',
+            complement: addr.additionalInfo || '',
+          });
+          // Mantém address concatenado para uso na API de pontos
+          const parts = [
+            addr.addressName, 
+            addr.number, 
+            addr.neighborhood, 
+            addr.city, 
+            addr.state
+          ].filter(Boolean);
+          if (parts.length > 0) {
+            setAddress(parts.join(', '));
+          }
+        }
+      } catch (e) {
+        // Silencia erro nesta etapa para não bloquear a UX
+      }
+    };
+    loadClientData();
+  }, []);
 
   const openMap = (addressStr: string) => {
     const query = encodeURIComponent(addressStr);
@@ -98,6 +177,43 @@ const DisposalScreen = () => {
       .catch((err) => console.error('Erro ao abrir mapa:', err));
   };
 
+  // Busca pontos elegíveis pela API usando linhas e endereço do cliente
+  const fetchEligiblePoints = async () => {
+    try {
+      const token = await AsyncStorage.getItem('authToken');
+      const rawBase = process.env.EXPO_PUBLIC_API_URL || '';
+      const apiUrl = (rawBase.replace(/\/$/, '') || 'https://berta-journalish-outlandishly.ngrok-free.dev/api/v1');
+
+      const lineMap: Record<LineType, string> = {
+        green: 'VERDE',
+        brown: 'MARROM',
+        blue: 'AZUL',
+        white: 'BRANCA',
+      };
+      const linesQuery = selectedLines.map(l => lineMap[l]).join(',');
+
+      const addrParts = address.split(',').map(p => p.trim());
+      const city = addrParts.find((p) => p && p.length > 0) || 'São Paulo';
+      const state = addrParts[addrParts.length - 1] || 'SP';
+
+      const res = await fetch(`${apiUrl}/discards/eligible-points?lines=${encodeURIComponent(linesQuery)}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+        body: JSON.stringify({ address: { city, state } }),
+      });
+      const data = await res.json().catch(() => ([]));
+      if (Array.isArray(data)) {
+        setEligiblePoints(data);
+      } else if (Array.isArray(data?.points)) {
+        setEligiblePoints(data.points);
+      } else {
+        setEligiblePoints([]);
+      }
+    } catch (e) {
+      setEligiblePoints([]);
+    }
+  };
+
   const handleSelectLine = (line: LineType) => {
     if (selectedLines.includes(line)) {
       setSelectedLines(selectedLines.filter(l => l !== line));
@@ -108,29 +224,94 @@ const DisposalScreen = () => {
 
   // --- VALIDAÇÃO E ENVIO ATUALIZADOS ---
   const handleCreateRequest = async () => {
-    let isValid = true;
     setItemsError('');
     setAddressError('');
+    setErrorVisible(false);
+    setSuccessVisible(false);
 
     if (!itemsDescription.trim()) {
       setItemsError('Por favor, descreva os itens.');
-      isValid = false;
+      setErrorMessage('Por favor, descreva os itens que serão descartados.');
+      setErrorVisible(true);
+      return;
     }
 
-    if (!address.trim()) {
-      setAddressError('O endereço de retirada é obrigatório.');
-      isValid = false;
+    if (disposalMethod === 'pickup') {
+      if (!addressData.street || !addressData.city) {
+        setAddressError('Endereço incompleto. Verifique seu cadastro.');
+        setErrorMessage('Endereço de retirada incompleto. Atualize seu cadastro.');
+        setErrorVisible(true);
+        return;
+      }
     }
 
-    if (!isValid) return;
+    if (disposalMethod === 'dropoff') {
+      if (!selectedPointId) {
+        setErrorMessage('Selecione um ponto de coleta para continuar.');
+        setErrorVisible(true);
+        return;
+      }
+    }
+
+    // Monta payloads conforme modo
+    const lineMap: Record<LineType, string> = {
+      green: 'VERDE',
+      brown: 'MARROM',
+      blue: 'AZUL',
+      white: 'BRANCA',
+    };
+    const linesPayload = selectedLines.map(l => lineMap[l]);
 
     setIsLoading(true);
-    await new Promise(r => setTimeout(r, 2000));
-    setIsLoading(false);
-    
-    Alert.alert("Sucesso!", "Sua solicitação de coleta foi criada.", [
-      { text: "OK", onPress: () => navigation.goBack() }
-    ]);
+    try {
+      const token = await AsyncStorage.getItem('authToken');
+      const rawBase = process.env.EXPO_PUBLIC_API_URL || '';
+      const apiUrl = (rawBase.replace(/\/$/, '') || 'https://berta-journalish-outlandishly.ngrok-free.dev/api/v1');
+
+      const bodyPickup = {
+        clientId: clientId ? Number(clientId) : undefined,
+        mode: 'PICKUP' as const,
+        lines: linesPayload,
+        description: itemsDescription.trim(),
+      };
+      const bodyDropoff = {
+        clientId: clientId ? Number(clientId) : undefined,
+        mode: 'COLLECTION_POINT' as const,
+        lines: linesPayload,
+        collectionPointId: selectedPointId!,
+        description: itemsDescription.trim(),
+      };
+
+      const res = await fetch(`${apiUrl}/discards`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+        },
+        body: JSON.stringify(disposalMethod === 'dropoff' ? bodyDropoff : bodyPickup),
+      });
+
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        const msg = data?.message || 'Falha ao registrar descarte. Tente novamente.';
+        setErrorMessage(msg);
+        setErrorVisible(true);
+        setIsLoading(false);
+        return;
+      }
+
+      // Sucesso: mostra banner e volta
+      setSuccessVisible(true);
+      setTimeout(() => {
+        setSuccessVisible(false);
+        navigation.goBack();
+      }, 2000);
+    } catch (e: any) {
+      setErrorMessage(e?.message || 'Erro de conexão. Tente novamente.');
+      setErrorVisible(true);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   // --- RENDERIZADORES ---
@@ -183,6 +364,19 @@ const DisposalScreen = () => {
     <>
       <S.SectionTitle>Como deseja descartar?</S.SectionTitle>
 
+              {successVisible && (
+                <View style={{
+                  backgroundColor: '#1DB954',
+                  borderRadius: 8,
+                  paddingVertical: 10,
+                  paddingHorizontal: 14,
+                  marginBottom: 12,
+                }}>
+                  <S.DescriptionText style={{ color: '#fff', marginBottom: 0 }}>
+                    Solicitação criada com sucesso.
+                  </S.DescriptionText>
+                </View>
+              )}
       <S.SelectionCard 
         selected={disposalMethod === 'pickup'} 
         onPress={() => setDisposalMethod('pickup')}
@@ -214,7 +408,7 @@ const DisposalScreen = () => {
       </S.SelectionCard>
 
       <S.ButtonContainer>
-        <Button title="Continuar" onPress={() => setStep(3)} disabled={!disposalMethod} />
+        <Button title="Continuar" onPress={async () => { setStep(3); if (disposalMethod === 'dropoff') { await fetchEligiblePoints(); } }} disabled={!disposalMethod} />
         <Button title="Voltar" onPress={() => setStep(1)} variant="secondary" />
       </S.ButtonContainer>
     </>
@@ -236,13 +430,32 @@ const DisposalScreen = () => {
       />
 
       <S.FormLabel>Endereço de Retirada</S.FormLabel>
-      <TextInput 
-        value={address}
-        onChangeText={(t) => { setAddress(t); setAddressError(''); }} 
-        placeholder="Seu endereço"
-        rightIcon={<MaterialCommunityIcons name="pencil" size={20} color={theme.colors.textLight} />}
-        error={addressError} 
-      />
+      
+      <S.AddressCard>
+        <S.AddressRow>
+          <MaterialCommunityIcons name="map-marker" size={20} color={theme.colors.primary} style={{ marginRight: 8 }} />
+          <S.AddressInfo>
+            <S.AddressMainText>
+              {addressData.street && addressData.number 
+                ? `${addressData.street}, ${addressData.number}`
+                : 'Rua não informada'}
+            </S.AddressMainText>
+            {addressData.neighborhood && (
+              <S.AddressSecondaryText>{addressData.neighborhood}</S.AddressSecondaryText>
+            )}
+            <S.AddressSecondaryText>
+              {addressData.city && addressData.state 
+                ? `${addressData.city} - ${addressData.state}`
+                : 'Cidade/Estado não informado'}
+            </S.AddressSecondaryText>
+            {addressData.complement && (
+              <S.AddressSecondaryText>Complemento: {addressData.complement}</S.AddressSecondaryText>
+            )}
+          </S.AddressInfo>
+        </S.AddressRow>
+      </S.AddressCard>
+      
+      {addressError && <S.ErrorText>{addressError}</S.ErrorText>}
 
       <S.ButtonContainer>
         <Button title="Solicitar Coleta" onPress={handleCreateRequest} isLoading={isLoading} />
@@ -252,9 +465,7 @@ const DisposalScreen = () => {
   );
 
   const renderDropoffMap = () => {
-    const filteredPoints = collectionPoints.filter(p => 
-      selectedLines.some(line => p.lines.includes(line))
-    );
+    const filteredPoints = eligiblePoints;
 
     return (
       <>
@@ -266,19 +477,19 @@ const DisposalScreen = () => {
         {filteredPoints.map(point => (
           <S.PointCard 
             key={point.id}
-            onPress={() => openMap(point.address)}
+            onPress={() => setSelectedPointId(point.id)}
             activeOpacity={0.7}
           >
             <S.PointName>{point.name}</S.PointName>
             <S.PointAddress>{point.address}</S.PointAddress>
             
             <S.PointDistance>
-              <S.DistanceText>{point.distance}</S.DistanceText>
+              <S.DistanceText>{point.distance || ''}</S.DistanceText>
             </S.PointDistance>
 
             <S.PointFooter>
                <MaterialCommunityIcons name="directions" size={18} color={theme.colors.primary} />
-               <S.CardActionText>Traçar Rota</S.CardActionText>
+               <S.CardActionText>{selectedPointId === point.id ? 'Selecionado' : 'Selecionar'}</S.CardActionText>
                <MaterialCommunityIcons 
                  name="chevron-right" 
                  size={18} 
@@ -291,6 +502,7 @@ const DisposalScreen = () => {
 
         <S.ButtonContainer>
            <Button title="Voltar" onPress={() => setStep(2)} variant="secondary" />
+           <Button title="Solicitar Descarte" onPress={handleCreateRequest} disabled={!selectedPointId || isLoading} isLoading={isLoading} />
         </S.ButtonContainer>
       </>
     );
@@ -309,6 +521,32 @@ const DisposalScreen = () => {
       </S.Header>
 
       <S.Content showsVerticalScrollIndicator={false}>
+        {errorVisible && (
+          <View style={{
+            backgroundColor: '#D93025',
+            borderRadius: 8,
+            paddingVertical: 10,
+            paddingHorizontal: 14,
+            marginBottom: 12,
+          }}>
+            <S.DescriptionText style={{ color: '#fff', marginBottom: 0 }}>
+              {errorMessage}
+            </S.DescriptionText>
+          </View>
+        )}
+        {successVisible && (
+          <View style={{
+            backgroundColor: '#1DB954',
+            borderRadius: 8,
+            paddingVertical: 10,
+            paddingHorizontal: 14,
+            marginBottom: 12,
+          }}>
+            <S.DescriptionText style={{ color: '#fff', marginBottom: 0 }}>
+              Solicitação criada com sucesso! Redirecionando...
+            </S.DescriptionText>
+          </View>
+        )}
         {step === 1 && renderStep1()}
         {step === 2 && renderStep2()}
         {step === 3 && disposalMethod === 'pickup' && renderPickupForm()}
