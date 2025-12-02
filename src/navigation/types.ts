@@ -5,5 +5,8 @@ export type AuthStackParamList = {
   Login: undefined;
   Register: undefined;
   ForgotPassword: undefined;
-  ResetPassword: undefined;
+  // Ao abrir a tela de verificação do código passamos o email
+  ResetPassword: { email: string };
+  // Após verificação, passamos email+code para confirmar nova senha
+  ResetPasswordConfirm: { email: string; code: string };
 };

@@ -107,6 +107,36 @@ export const ErrorMessage = styled.Text`
   width: 100%;
 `;
 
+// --- Success / Feedback ---
+export const SuccessContainer = styled.View`
+  flex: 1;
+  align-items: center;
+  justify-content: center;
+  padding: 40px;
+  background-color: ${(props: any) => props.theme.colors.surface};
+  border-radius: 20px;
+  margin-top: 10px;
+  width: 100%;
+`;
+
+export const SuccessTitle = styled.Text`
+  font-size: 20px;
+  font-family: 'Montserrat-Bold';
+  color: ${(props: any) => props.theme.colors.primary};
+  margin-top: 10px;
+  margin-bottom: 8px;
+  text-align: center;
+`;
+
+export const SuccessMessage = styled.Text`
+  font-size: 14px;
+  font-family: 'Montserrat-Regular';
+  color: ${(props: any) => props.theme.colors.textLight};
+  text-align: center;
+  margin-bottom: 20px;
+  line-height: 20px;
+`;
+
 // --- OTP / CÓDIGO ---
 
 export const CodeInputContainer = styled.View`
