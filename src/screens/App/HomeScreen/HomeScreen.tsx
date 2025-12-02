@@ -41,7 +41,7 @@ const HomeScreen = () => {
 
       const BASE_URL = process.env.EXPO_PUBLIC_API_URL || 'https://berta-journalish-outlandishly.ngrok-free.dev/api/v1';
       
-      const response = await fetch(`${BASE_URL}/clients/${userId}`, { 
+      const response = await fetch(`${BASE_URL}/clients/me`, { 
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
@@ -51,8 +51,18 @@ const HomeScreen = () => {
 
       if (response.ok) {
         const data = await response.json();
-        const fullName = data.name || `${data.firstName || ''} ${data.lastName || ''}`.trim();
-        setUserName(fullName || 'Usuário');
+        // Extrai o nome do usuário corretamente
+        let fullName = 'Usuário';
+        if (data.type === 'individual' && data.individual) {
+          const firstName = data.individual.firstName || '';
+          const lastName = data.individual.lastName || '';
+          fullName = `${firstName} ${lastName}`.trim() || 'Usuário';
+        } else if (data.type === 'company' && data.company) {
+          fullName = data.company.tradeName || data.company.companyName || 'Empresa';
+        }
+
+        // Atualiza o nome no header
+        setUserName(fullName);
 
         if (data.avatarUrl) {
           setUserAvatar(data.avatarUrl);

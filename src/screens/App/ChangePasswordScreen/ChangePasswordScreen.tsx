@@ -19,6 +19,7 @@ const ChangePasswordScreen = () => {
   const [confirmNewPassword, setConfirmNewPassword] = useState('');
   const [passwordStrength, setPasswordStrength] = useState(0);
   const [isLoading, setIsLoading] = useState(false);
+  const [successVisible, setSuccessVisible] = useState(false);
 
   const [showCurrentPass, setShowCurrentPass] = useState(false);
   const [showNewPass, setShowNewPass] = useState(false);
@@ -57,46 +58,65 @@ const ChangePasswordScreen = () => {
   };
 
   const handleChangePassword = async () => {
+    // Validações de formulário
     if (!currentPassword || !newPassword || !confirmNewPassword) {
-      Alert.alert("Atenção", "Preencha todos os campos.");
+      Alert.alert('Atenção', 'Preencha todos os campos.');
       return;
     }
     if (passwordStrength < 2) {
-       Alert.alert("Senha Fraca", "Mínimo 8 caracteres, 1 maiúscula e 1 número.");
-       return;
+      Alert.alert('Senha Fraca', 'Mínimo 8 caracteres, 1 maiúscula e 1 número.');
+      return;
     }
     if (newPassword !== confirmNewPassword) {
-      Alert.alert("Erro", "As senhas não conferem.");
+      Alert.alert('Erro', 'As senhas não conferem.');
       return;
     }
 
     setIsLoading(true);
     try {
       const token = await AsyncStorage.getItem('authToken');
-      const apiUrl = process.env.EXPO_PUBLIC_API_URL || 'https://berta-journalish-outlandishly.ngrok-free.dev/api/v1';
-      
-      // Chamada real para a API
-      const response = await fetch(`${apiUrl}/auth/change-password`, {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${token}`
-        },
-        body: JSON.stringify({
-            currentPassword,
-            newPassword
-        })
-      });
-
-      if (!response.ok) {
-          throw new Error('Falha ao alterar senha. Verifique a senha atual.');
+      if (!token) {
+        Alert.alert('Sessão expirada', 'Faça login novamente para alterar sua senha.');
+        return;
       }
 
-      Alert.alert("Sucesso", "Senha alterada com sucesso!", [
-          { text: "OK", onPress: () => navigation.goBack() }
-      ]);
-    } catch (error) {
-      Alert.alert("Erro", "Não foi possível alterar a senha.");
+      const rawBase = process.env.EXPO_PUBLIC_API_URL || '';
+      const apiUrl = (rawBase.replace(/\/$/, '') || 'https://berta-journalish-outlandishly.ngrok-free.dev/api/v1');
+
+      const response = await fetch(`${apiUrl}/clients/password`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+        },
+        body: JSON.stringify({ currentPassword, newPassword }),
+      });
+
+      const data: { message?: string } = await response.json().catch(() => ({} as any));
+
+      if (!response.ok) {
+        // Mapeamento simples de erros
+        if (response.status === 400 || response.status === 401) {
+          Alert.alert('Falha ao alterar senha', data.message || 'Verifique a senha atual e tente novamente.');
+        } else if (response.status === 429) {
+          Alert.alert('Muitas tentativas', 'Tente novamente em alguns minutos.');
+        } else {
+          Alert.alert('Erro', data.message || 'Não foi possível alterar a senha.');
+        }
+        return;
+      }
+        // Sucesso: mostra banner e navega de volta após breve intervalo
+        setSuccessVisible(true);
+        // Limpa campos sensíveis
+        setCurrentPassword('');
+        setNewPassword('');
+        setConfirmNewPassword('');
+        setTimeout(() => {
+          setSuccessVisible(false);
+          navigation.goBack();
+        }, 1800);
+    } catch (error: any) {
+      Alert.alert('Erro de conexão', error?.message || 'Não foi possível alterar a senha.');
     } finally {
       setIsLoading(false);
     }
@@ -114,6 +134,21 @@ const ChangePasswordScreen = () => {
       </S.Header>
 
       <S.Content>
+          {successVisible && (
+            <View style={{
+              backgroundColor: '#1DB954',
+              borderRadius: 8,
+              paddingVertical: 10,
+              paddingHorizontal: 14,
+              marginBottom: 12,
+            }}>
+              <View>
+                <S.Description style={{ color: '#fff', marginBottom: 0 }}>
+                  Senha alterada com sucesso.
+                </S.Description>
+              </View>
+            </View>
+          )}
         <S.Description>
             Para sua segurança, escolha uma senha forte e não a compartilhe com ninguém.
         </S.Description>
