@@ -196,3 +196,49 @@ export const textAreaStyle = {
   paddingTop: 15,
   paddingBottom: 15,
 };
+
+// --- CARD DE ENDEREÇO ---
+export const AddressCard = styled.View`
+  background-color: ${(props: any) => props.theme.colors.surface};
+  border-radius: 12px;
+  padding: 16px;
+  margin-bottom: 12px;
+  border-left-width: 4px;
+  border-left-color: ${(props: any) => props.theme.colors.primary};
+  elevation: 2;
+  shadow-color: #000;
+  shadow-offset: 0px 2px;
+  shadow-opacity: 0.1;
+  shadow-radius: 4px;
+`;
+
+export const AddressRow = styled.View`
+  flex-direction: row;
+  align-items: flex-start;
+`;
+
+export const AddressInfo = styled.View`
+  flex: 1;
+`;
+
+export const AddressMainText = styled.Text`
+  font-size: 16px;
+  font-family: 'Montserrat-Bold';
+  color: ${(props: any) => props.theme.colors.text};
+  margin-bottom: 6px;
+`;
+
+export const AddressSecondaryText = styled.Text`
+  font-size: 14px;
+  font-family: 'Montserrat-Regular';
+  color: ${(props: any) => props.theme.colors.textLight};
+  margin-bottom: 3px;
+`;
+
+export const ErrorText = styled.Text`
+  font-size: 12px;
+  font-family: 'Montserrat-Regular';
+  color: ${(props: any) => props.theme.colors.error};
+  margin-top: -8px;
+  margin-bottom: 10px;
+`;
