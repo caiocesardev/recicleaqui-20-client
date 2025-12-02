@@ -75,7 +75,17 @@ const ProfileScreen = () => {
         setClientType(data.type);
         setEmail(data.user?.email || '');
         setPhone(formatPhone(data.phone || ''));
-        if (data.avatarUrl) setAvatarUri(data.avatarUrl);
+        
+        // Constrói URL completa do avatar
+        if (data.avatarUrl) {
+          let fullAvatarUrl = data.avatarUrl;
+          if (!fullAvatarUrl.startsWith('http')) {
+            const baseUrl = apiUrl.replace('/api/v1', '');
+            fullAvatarUrl = `${baseUrl}${fullAvatarUrl.startsWith('/') ? '' : '/'}${fullAvatarUrl}`;
+          }
+          console.log('Avatar carregado:', fullAvatarUrl);
+          setAvatarUri(fullAvatarUrl);
+        }
 
         if (data.type === 'individual' && data.individual) {
           setFirstName(data.individual.firstName || '');
@@ -146,15 +156,16 @@ const ProfileScreen = () => {
     }
     try {
       const result = await ImagePicker.launchImageLibraryAsync({
-        mediaTypes: ImagePicker.MediaTypeOptions.Images,
+        mediaTypes: ['images'], // Fix: usar array ao invés de MediaTypeOptions (deprecated)
         allowsEditing: true,
         aspect: [1, 1],
         quality: 0.5,
       });
       if (!result.canceled) {
         const uri = result.assets[0].uri;
+        // Mostra preview local imediatamente
         setAvatarUri(uri);
-        // Salva imediatamente após selecionar
+        // Salva no servidor
         await handleSaveAvatar(uri);
       }
     } catch (error) { console.error(error); }
@@ -165,7 +176,8 @@ const ProfileScreen = () => {
     
     try {
       const token = await AsyncStorage.getItem('authToken');
-      const apiUrl = process.env.EXPO_PUBLIC_API_URL || '';
+      const rawBase = process.env.EXPO_PUBLIC_API_URL || '';
+      const apiUrl = rawBase.replace(/\/$/,'') || 'https://berta-journalish-outlandishly.ngrok-free.dev/api/v1';
       
       // Prepara FormData
       const formData = new FormData();
@@ -189,8 +201,19 @@ const ProfileScreen = () => {
 
       if (response.ok) {
         const data = await response.json();
-        setAvatarUri(data.avatarUrl); // URL completa do servidor
+        
+        // Constrói URL completa do avatar
+        let fullAvatarUrl = data.avatarUrl;
+        if (fullAvatarUrl && !fullAvatarUrl.startsWith('http')) {
+          // Se for caminho relativo, adiciona base URL
+          const baseUrl = apiUrl.replace('/api/v1', '');
+          fullAvatarUrl = `${baseUrl}${fullAvatarUrl.startsWith('/') ? '' : '/'}${fullAvatarUrl}`;
+        }
+        
+        console.log('Avatar URL salvo:', fullAvatarUrl);
+        setAvatarUri(fullAvatarUrl);
         showToast('success', 'Avatar atualizado!');
+        
         // Recarrega dados para atualizar no HomeScreen
         await loadUserData();
       } else {
@@ -426,6 +449,7 @@ const ProfileScreen = () => {
 
         <S.AvatarWrapper>
           <S.AvatarImage
+            key={avatarUri || 'default-avatar'}
             source={avatarUri ? { uri: avatarUri } : require('../../../../assets/images/avatar.png')}
           />
           <S.EditIconContainer onPress={handlePickImage} activeOpacity={0.8}>

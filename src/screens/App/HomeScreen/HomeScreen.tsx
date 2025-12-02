@@ -82,8 +82,14 @@ const HomeScreen = () => {
         // Atualiza o nome no header
         setUserName(fullName);
 
+        // Constrói URL completa do avatar
         if (data.avatarUrl) {
-          setUserAvatar(data.avatarUrl);
+          let fullAvatarUrl = data.avatarUrl;
+          if (!fullAvatarUrl.startsWith('http')) {
+            const baseUrl = BASE_URL.replace('/api/v1', '');
+            fullAvatarUrl = `${baseUrl}${fullAvatarUrl.startsWith('/') ? '' : '/'}${fullAvatarUrl}`;
+          }
+          setUserAvatar(fullAvatarUrl);
         }
       }
     } catch (error) {
