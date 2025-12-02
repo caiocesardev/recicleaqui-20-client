@@ -102,8 +102,6 @@ const HomeScreen = () => {
       navigation.navigate('Profile');
     } else if (screen === 'Registrar') {
       navigation.navigate('Disposal'); 
-    } else {
-      console.log(`Navegar para ${screen} (Em breve)`);
     }
   };
 

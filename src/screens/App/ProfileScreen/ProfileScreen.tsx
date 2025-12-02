@@ -209,8 +209,6 @@ const ProfileScreen = () => {
           const baseUrl = apiUrl.replace('/api/v1', '');
           fullAvatarUrl = `${baseUrl}${fullAvatarUrl.startsWith('/') ? '' : '/'}${fullAvatarUrl}`;
         }
-        
-        console.log('Avatar URL salvo:', fullAvatarUrl);
         setAvatarUri(fullAvatarUrl);
         showToast('success', 'Avatar atualizado!');
         

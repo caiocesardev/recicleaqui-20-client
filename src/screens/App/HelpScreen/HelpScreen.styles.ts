@@ -1,16 +1,16 @@
-// Arquivo: src/screens/App/SettingsScreen/SettingsScreen.styles.ts
+// Arquivo: src/screens/App/HelpScreen/HelpScreen.styles.ts
+
 import styled from 'styled-components/native';
-import { COLORS } from '../../../constants/colors';
 
 export const Container = styled.View`
   flex: 1;
-  background-color: ${COLORS.background};
+  background-color: ${(props: any) => props.theme.colors.background};
 `;
 
 export const Header = styled.View`
   padding: 20px;
   padding-top: 60px;
-  background-color: ${COLORS.primary};
+  background-color: ${(props: any) => props.theme.colors.primary};
   height: 140px;
   justify-content: center;
   align-items: center;
@@ -23,7 +23,7 @@ export const Header = styled.View`
 export const Title = styled.Text`
   font-size: 22px;
   font-family: 'Montserrat-Bold';
-  color: ${COLORS.white};
+  color: ${(props: any) => props.theme.colors.white};
   margin-top: 20px;
 `;
 
@@ -33,7 +33,7 @@ export const MenuButton = styled.TouchableOpacity`
   left: 20px;
   z-index: 10;
   padding: 8px;
-  background-color: ${COLORS.whiteTransparent || 'rgba(255,255,255,0.2)'};
+  background-color: ${(props: any) => props.theme.colors.whiteTransparent};
   border-radius: 12px;
 `;
 
@@ -46,7 +46,7 @@ export const Content = styled.ScrollView`
 export const SettingItem = styled.TouchableOpacity`
   flex-direction: row;
   align-items: center;
-  background-color: ${COLORS.white};
+  background-color: ${(props: any) => props.theme.colors.surface};
   padding: 16px;
   border-radius: 16px;
   margin-bottom: 12px;
@@ -65,12 +65,12 @@ export const SettingTextContainer = styled.View`
 export const SettingTitle = styled.Text`
   font-size: 14px;
   font-family: 'Montserrat-Bold';
-  color: ${COLORS.text};
+  color: ${(props: any) => props.theme.colors.text};
 `;
 
 export const SettingSubtitle = styled.Text`
   font-size: 12px;
   font-family: 'Montserrat-Regular';
-  color: #888;
+  color: ${(props: any) => props.theme.colors.textLight};
   margin-top: 2px;
 `;

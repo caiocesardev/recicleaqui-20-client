@@ -61,7 +61,7 @@ export const ToastProvider: React.FC<{ children: React.ReactNode }> = ({ childre
           {
             transform: [{ translateY }],
             opacity,
-            top: Platform.select({ ios: 60, android: 20, default: 20 }),
+            top: Platform.select({ ios: 100, android: 60, default: 60 }),
           },
         ]}
       >
@@ -78,25 +78,32 @@ export const ToastProvider: React.FC<{ children: React.ReactNode }> = ({ childre
 const styles = StyleSheet.create({
   container: {
     position: 'absolute',
-    left: 0,
-    right: 0,
+    left: 20,
+    right: 20,
     alignItems: 'center',
     zIndex: 9999,
   },
   toast: {
-    paddingVertical: 10,
-    paddingHorizontal: 16,
-    borderRadius: 18,
+    width: '100%',
+    paddingVertical: 16,
+    paddingHorizontal: 20,
+    borderRadius: 16,
+    borderWidth: 3,
+    borderColor: 'rgba(255, 255, 255, 0.3)',
     shadowColor: '#000',
-    shadowOpacity: 0.2,
-    shadowRadius: 10,
-    shadowOffset: { width: 0, height: 6 },
-    elevation: 6,
+    shadowOpacity: 0.25,
+    shadowRadius: 12,
+    shadowOffset: { width: 0, height: 4 },
+    elevation: 8,
+    minHeight: 56,
+    justifyContent: 'center',
   },
   text: {
     color: '#fff',
-    fontSize: 14,
+    fontSize: 15,
     fontFamily: 'Montserrat-Bold',
+    textAlign: 'center',
+    lineHeight: 22,
   },
 });
 
