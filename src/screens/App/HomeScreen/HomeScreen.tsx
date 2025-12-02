@@ -10,7 +10,6 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as S from './HomeScreen.styles';
 import { COLORS } from '../../../constants/colors'; 
 
-import { GamificationCard } from '../../../components/GamificationCard';
 import { InfoCard } from '../../../components/InfoCard';
 
 const HomeScreen = () => {
@@ -20,11 +19,30 @@ const HomeScreen = () => {
   const [userName, setUserName] = useState('Usuário');
   const [userAvatar, setUserAvatar] = useState<string | null>(null);
   
-  const gamificationData = {
-    level: 7,
-    xpCurrent: 700,
-    xpNext: 1000,
-  };
+  // Mock dos últimos 3 descartes (preview compacto)
+  const recentDiscards = [
+    {
+      id: 'd1',
+      mode: 'PICKUP',
+      status: 'REQUESTED',
+      lines: ['VERDE', 'AZUL'],
+      date: '2025-11-28T14:23:00Z',
+    },
+    {
+      id: 'd2',
+      mode: 'COLLECTION_POINT',
+      status: 'COMPLETED',
+      lines: ['BRANCA'],
+      date: '2025-11-20T10:05:00Z',
+    },
+    {
+      id: 'd3',
+      mode: 'PICKUP',
+      status: 'IN_PROGRESS',
+      lines: ['MARROM'],
+      date: '2025-11-15T09:45:00Z',
+    },
+  ];
 
   useFocusEffect(
     useCallback(() => {
@@ -131,11 +149,60 @@ const HomeScreen = () => {
         overScrollMode="never"
       >
         
-        <GamificationCard 
-          level={gamificationData.level} 
-          currentXp={gamificationData.xpCurrent} 
-          nextXp={gamificationData.xpNext} 
-        />
+        {/* Preview compacto do histórico (substitui GamificationCard) */}
+        <S.HistoryPreviewCard>
+          <S.HistoryHeaderRow>
+            <S.HistoryTitle>Seus últimos descartes</S.HistoryTitle>
+            <S.HistorySeeAllButton onPress={() => navigation.navigate('History')}>
+              <S.HistorySeeAllText>Ver histórico</S.HistorySeeAllText>
+            </S.HistorySeeAllButton>
+          </S.HistoryHeaderRow>
+
+          {recentDiscards.map((item) => (
+            <S.HistoryItemRow key={item.id}>
+              <S.HistoryItemIcon>
+                <MaterialCommunityIcons
+                  name={item.mode === 'PICKUP' ? 'truck-outline' : 'map-marker-outline'}
+                  size={22}
+                  color={item.mode === 'PICKUP' ? COLORS.lines.green : COLORS.primary}
+                />
+              </S.HistoryItemIcon>
+              <S.HistoryItemContent>
+                <S.HistoryItemTop>
+                  <S.HistoryItemTitle>
+                    {item.mode === 'PICKUP' ? 'Coleta agendada' : 'Entrega em ponto'}
+                  </S.HistoryItemTitle>
+                  <S.HistoryItemStatus $status={item.status}>
+                    {item.status === 'COMPLETED' ? 'Concluído' : item.status === 'IN_PROGRESS' ? 'Em andamento' : 'Solicitado'}
+                  </S.HistoryItemStatus>
+                </S.HistoryItemTop>
+                <S.HistoryItemBottom>
+                  <S.LineChipsRow>
+                    {item.lines.map((line) => {
+                      const colorMap: Record<string, string> = {
+                        VERDE: COLORS.lines.green,
+                        MARROM: COLORS.lines.brown,
+                        AZUL: COLORS.lines.blue,
+                        BRANCA: COLORS.lines.white,
+                      };
+                      return (
+                        <S.LineChip key={`${item.id}-${line}`} $color={colorMap[line] || COLORS.primary}>
+                          <S.LineChipText $color={colorMap[line] || COLORS.primary}>{line}</S.LineChipText>
+                        </S.LineChip>
+                      );
+                    })}
+                  </S.LineChipsRow>
+                  <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                    <MaterialCommunityIcons name="calendar-blank-outline" size={14} color={COLORS.textLight || 'gray'} />
+                    <S.HistoryItemDate style={{ marginLeft: 6 }}>
+                      {new Date(item.date).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' })}
+                    </S.HistoryItemDate>
+                  </View>
+                </S.HistoryItemBottom>
+              </S.HistoryItemContent>
+            </S.HistoryItemRow>
+          ))}
+        </S.HistoryPreviewCard>
 
         <S.ActionContainer>
           <S.MainActionButton onPress={() => handleNavigate('Registrar')} activeOpacity={0.9}>
