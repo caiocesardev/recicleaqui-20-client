@@ -7,8 +7,8 @@ import { AuthStackParamList } from './types';
 import LoginScreen from '../screens/Auth/LoginScreen/LoginScreen';
 import RegisterScreen from '../screens/Auth/RegisterScreen/RegisterScreen';
 import ForgotPasswordScreen from '../screens/Auth/ForgotPasswordScreen/ForgotPasswordScreen';
-
-// REMOVA A IMPORTAÇÃO DE RESETPASSWORD
+import ResetPasswordScreen from '../screens/Auth/ResetPasswordScreen/ResetPasswordScreen';
+import ResetPasswordConfirmScreen from '../screens/Auth/ResetPasswordConfirm/ResetPasswordConfirmScreen';
 
 const Stack = createNativeStackNavigator<AuthStackParamList>();
 
@@ -21,10 +21,14 @@ const AuthNavigator = () => {
       <Stack.Screen name="Login" component={LoginScreen} />
       <Stack.Screen name="Register" component={RegisterScreen} />
       
-      {/* Esta tela agora faz todo o fluxo (Email -> Código -> Senha) */}
+      {/* Tela para iniciar recuperação (envio do e-mail) */}
       <Stack.Screen name="ForgotPassword" component={ForgotPasswordScreen} />
-      
-      {/* REMOVA A LINHA DO STACK.SCREEN DE RESETPASSWORD */}
+
+      {/* Tela para inserir apenas o código (verificação) */}
+      <Stack.Screen name="ResetPassword" component={ResetPasswordScreen} />
+
+      {/* Tela para confirmar a nova senha após verificação do código */}
+      <Stack.Screen name="ResetPasswordConfirm" component={ResetPasswordConfirmScreen} />
     </Stack.Navigator>
   );
 };
