@@ -42,7 +42,6 @@ const ProfileScreen = () => {
 
   // Estados Endereço
   const [postalCode, setPostalCode] = useState('');
-  const [addressType, setAddressType] = useState('');
   const [addressName, setAddressName] = useState('');
   const [number, setNumber] = useState('');
   const [neighborhood, setNeighborhood] = useState('');
@@ -100,7 +99,6 @@ const ProfileScreen = () => {
         if (data.address) {
           setAddressId(data.address.id);
           setPostalCode(formatCEP(data.address.postalCode || ''));
-          setAddressType(data.address.addressType || '');
           setAddressName(data.address.addressName || '');
           setNumber(data.address.number || '');
           setNeighborhood(data.address.neighborhood || '');
@@ -254,7 +252,6 @@ const ProfileScreen = () => {
       const tNeighborhood = (neighborhood || '').trim();
       const tCity = (city || '').trim();
       const addressNumberDigits = onlyDigits(number || '');
-      const validAddressTypes = ['Rua','Avenida','Alameda','Estrada'];
 
       const validUF = [
         'AC','AL','AP','AM','BA','CE','DF','ES','GO','MA','MT','MS','MG',
@@ -354,15 +351,10 @@ const ProfileScreen = () => {
         }
       }
 
-      const normalizedAddressType = validAddressTypes.includes((addressType || '').trim())
-        ? (addressType || '').trim()
-        : 'Rua';
-
       let payload: any = {
         phone: phoneDigits,
         address: {
           postalCode: cepDigits,
-          addressType: normalizedAddressType,
           addressName: tAddressName,
           number: addressNumberDigits,
           neighborhood: tNeighborhood,
